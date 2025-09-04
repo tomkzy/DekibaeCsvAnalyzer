@@ -1,0 +1,7 @@
+<!--
+  Avalonia 0.10 用のプレースホルダ。UIは未実装。
+  ビルド対象ではないが、フォルダ構成の要件を満たすために配置。
+-->
+<Application xmlns="https://github.com/avaloniaui">
+</Application>
+

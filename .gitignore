@@ -1,0 +1,21 @@
+# Build outputs
+bin/
+obj/
+
+# Rider/VS/OS junk
+.vs/
+.idea/
+.DS_Store
+
+# App outputs
+out/logs/
+out/cache/
+out/exports/
+
+# Tests
+TestResults/
+
+# User-specific
+*.user
+*.suo
+
