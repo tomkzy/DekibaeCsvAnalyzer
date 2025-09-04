@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -13,4 +13,3 @@
     <ProjectReference Include="..\..\src\BizCsvAnalyzer.csproj" />
   </ItemGroup>
 </Project>
-

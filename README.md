@@ -1,4 +1,4 @@
-BizCsvAnalyzer (.NET 5 / Avalonia 0.10-ready core)
+BizCsvAnalyzer (.NET 8 / Avalonia 11-ready core)
 =================================================
 
 目的
@@ -6,7 +6,7 @@ BizCsvAnalyzer (.NET 5 / Avalonia 0.10-ready core)
 - 出力先: `out/exports`（命名規約に準拠）/ ログ: `out/logs`
 
 前提
-- .NET 5 SDK
+- .NET 8 SDK (LTS)
 - Linux 上の作業例（WSL/Ubuntu 等）
 
 配置（ユーザー指定パス）
@@ -42,4 +42,4 @@ BizCsvAnalyzer (.NET 5 / Avalonia 0.10-ready core)
 注意
 - 本リポジトリは UI を最小限（Avalonia のプレースホルダー）に留め、ドメイン/サービス層の動作確認を優先
 - 大規模 CSV（10万〜100万行）での計測は `CsvLoader` と `Analyzer` のパラメータ（r, t, Δt）を調整して実施
-
+- Avalonia を導入する場合は、11.x 系パッケージ（`Avalonia`, `Avalonia.Desktop`, `Avalonia.Themes.Fluent` など）を追加し、ターゲットフレームワークは `net8.0` を推奨
