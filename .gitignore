@@ -19,3 +19,6 @@ TestResults/
 *.user
 *.suo
 
+
+# Temp
+tmp_avalonia_template/
