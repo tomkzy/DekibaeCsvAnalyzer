@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using Microsoft.Extensions.Logging;
 using BizCsvAnalyzer.Logging;
+using Avalonia;
 
 /*
   例外/ロギング/キャンセル方針
@@ -14,15 +15,22 @@ namespace BizCsvAnalyzer
 {
     internal static class Program
     {
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
             var pair = BizCsvAnalyzer.Logging.Logging.SimpleFileLoggerFactory(Path.Combine("out", "logs"));
             var loggerFactory = pair.Factory;
             var logPath = pair.LogPath;
             var logger = loggerFactory.CreateLogger("Bootstrap");
             logger.LogInformation("BizCsvAnalyzer booted. Logs at {Path}", logPath);
-            // 本サンプルは CLI 実行機能を持たず、ライブラリ/テストで利用します。
-            // UI( Avalonia )やCLIを追加する際は、Services.* をDIで組み合わせてください。
+            // Avalonia デスクトップアプリを起動
+            return BuildAvaloniaApp()
+                .StartWithClassicDesktopLifetime(args);
         }
+
+        public static AppBuilder BuildAvaloniaApp()
+            => AppBuilder.Configure<App>()
+                .UsePlatformDetect()
+                .WithInterFont()
+                .LogToTrace();
     }
 }

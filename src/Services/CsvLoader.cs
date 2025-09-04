@@ -111,12 +111,13 @@ namespace BizCsvAnalyzer.Services
                     .Select(d => new { d, count = line.Split(new[] { d }, StringSplitOptions.None).Length - 1 })
                     .OrderByDescending(x => x.count)
                     .First();
+                reader.DiscardBufferedData();
                 reader.BaseStream.Seek(pos, SeekOrigin.Begin);
-                reader.BaseStream.Position = pos;
                 return best.count > 0 ? best.d : ",";
             }
             finally
             {
+                reader.DiscardBufferedData();
                 reader.BaseStream.Seek(pos, SeekOrigin.Begin);
             }
         }

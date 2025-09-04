@@ -1,7 +1,9 @@
-<!--
-  Avalonia 0.10 用のプレースホルダ。UIは未実装。
-  ビルド対象ではないが、フォルダ構成の要件を満たすために配置。
--->
-<Application xmlns="https://github.com/avaloniaui">
+<Application
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:fluent="clr-namespace:Avalonia.Themes.Fluent;assembly=Avalonia.Themes.Fluent"
+    x:Class="BizCsvAnalyzer.App">
+  <Application.Styles>
+    <fluent:FluentTheme />
+  </Application.Styles>
 </Application>
-
