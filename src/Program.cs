@@ -22,6 +22,17 @@ namespace BizCsvAnalyzer
             var logPath = pair.LogPath;
             var logger = loggerFactory.CreateLogger("Bootstrap");
             logger.LogInformation("BizCsvAnalyzer booted. Logs at {Path}", logPath);
+            // WSL 環境では Wayland を優先（X11 依存不足の回避）。
+            try
+            {
+                var isWsl = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WSL_DISTRO_NAME"))
+                          || !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WSL_INTEROP"));
+                if (isWsl && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("AVALONIA_PLATFORM")))
+                {
+                    Environment.SetEnvironmentVariable("AVALONIA_PLATFORM", "Wayland");
+                }
+            }
+            catch { /* best-effort */ }
             // Avalonia デスクトップアプリを起動
             return BuildAvaloniaApp()
                 .StartWithClassicDesktopLifetime(args);
