@@ -19,6 +19,15 @@ TestResults/
 *.user
 *.suo
 
+# Avalonia build cache
+.avalonia-build-tasks/
+src/.avalonia-build-tasks/
+tests/**/.avalonia-build-tasks/
+
+# Local run artifacts
+app.pid
+run_*.log
+
 
 # Temp
 tmp_avalonia_template/
