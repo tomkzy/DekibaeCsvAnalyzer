@@ -47,21 +47,36 @@ namespace BizCsvAnalyzer.Services
         var outputsDir = Path.Combine(outputRoot, "exports");
         Directory.CreateDirectory(outputsDir);
 
-        string icName = conditions.IC ?? "IC";
-        string lotName = conditions.LotNo ?? "Lot";
+        string icLabel = string.IsNullOrWhiteSpace(conditions.IC) ? "IC" : conditions.IC;
+        string lotLabel = string.IsNullOrWhiteSpace(conditions.LotNo) ? "ALL" : conditions.LotNo;
+        string dateLabel = (conditions.From ?? DateTime.MinValue).ToString("yyyyMMdd", CultureInfo.InvariantCulture)
+                          + "-" + (conditions.To ?? conditions.From ?? DateTime.MinValue).ToString("yyyyMMdd", CultureInfo.InvariantCulture);
         var tsStamp = DateTime.Now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture);
 
-        var aggregatePath = Path.Combine(outputsDir, $"Aggregate_{icName}_{lotName}_{tsStamp}.csv");
-        var clusterPath = Path.Combine(outputsDir, $"Cluster_{icName}_{lotName}_{tsStamp}.csv");
-        var alarmPath = Path.Combine(outputsDir, $"AlarmRate_{icName}_{lotName}_{tsStamp}.csv");
+        string aggregatePath = null;
+        string clusterPath = null;
+        string alarmPath = null;
+        StreamWriter aggWriter = null;
+        StreamWriter cluWriter = null;
+        StreamWriter almWriter = null;
 
-        await using var aggWriter = new StreamWriter(aggregatePath, false, new System.Text.UTF8Encoding(true));
-        await using var cluWriter = new StreamWriter(clusterPath, false, new System.Text.UTF8Encoding(true));
-        await using var almWriter = new StreamWriter(alarmPath, false, new System.Text.UTF8Encoding(true));
+        async System.Threading.Tasks.Task EnsureWritersAsync(string effectiveIc)
+        {
+            if (aggWriter != null) return;
+            var icForName = string.IsNullOrWhiteSpace(conditions.IC) ? (string.IsNullOrWhiteSpace(effectiveIc) ? icLabel : effectiveIc) : icLabel;
+            aggregatePath = Path.Combine(outputsDir, $"Aggregate_{icForName}_{lotLabel}_{dateLabel}_{tsStamp}.csv");
+            clusterPath   = Path.Combine(outputsDir, $"Cluster_{icForName}_{lotLabel}_{dateLabel}_{tsStamp}.csv");
+            alarmPath     = Path.Combine(outputsDir, $"AlarmRate_{icForName}_{lotLabel}_{dateLabel}_{tsStamp}.csv");
 
-        await cluWriter.WriteLineAsync("LotNo,Timestamp,EquipmentCode,LedgerNo,X,Y,Severity,CodeRaw,ClusterId");
+            aggWriter = new StreamWriter(aggregatePath, false, new System.Text.UTF8Encoding(true));
+            cluWriter = new StreamWriter(clusterPath,   false, new System.Text.UTF8Encoding(true));
+            almWriter = new StreamWriter(alarmPath,     false, new System.Text.UTF8Encoding(true));
 
-        var byCode = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            await cluWriter.WriteLineAsync("LotNo,Timestamp,EquipmentCode,LedgerNo,Face,X,Y,Severity,CodeRaw,ClusterId");
+        }
+
+        var byCode = new Dictionary<string, Dictionary<string, int>>(StringComparer.OrdinalIgnoreCase); // Face -> Code -> Count
+        var faceTotals = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         long total = 0;
 
         var alarmCounts = new SortedDictionary<long, int>();
@@ -81,18 +96,21 @@ namespace BizCsvAnalyzer.Services
                     if (!Match(r, conditions)) continue;
 
                     if (first == null) first = r;
-                    icName = !string.IsNullOrEmpty(conditions.IC) ? conditions.IC : (first != null ? first.EquipmentCode : icName);
-                    lotName = !string.IsNullOrEmpty(conditions.LotNo) ? conditions.LotNo : (first != null ? first.LotNo : lotName);
+                    await EnsureWritersAsync(first.EquipmentCode);
 
                     total++;
-                    var key = r.CodeRaw ?? string.Empty;
+                    var face = r.Face ?? string.Empty;
+                    var code = r.CodeRaw ?? string.Empty;
+                    if (!byCode.TryGetValue(face, out var dict)) { dict = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase); byCode[face] = dict; }
                     int c;
-                    byCode[key] = byCode.TryGetValue(key, out c) ? c + 1 : 1;
+                    dict[code] = dict.TryGetValue(code, out c) ? c + 1 : 1;
+                    int ft;
+                    faceTotals[face] = faceTotals.TryGetValue(face, out ft) ? ft + 1 : 1;
 
                     var clusterId = clusterer.AssignCluster(r);
                     await cluWriter.WriteLineAsync(string.Join(',', new[]
                     {
-                        Csv(r.LotNo), r.Timestamp.ToString("yyyy-MM-dd HH:mm:ss"), Csv(r.EquipmentCode), Csv(r.LedgerNo),
+                        Csv(r.LotNo), r.Timestamp.ToString("yyyy-MM-dd HH:mm:ss"), Csv(r.EquipmentCode), Csv(r.LedgerNo), Csv(r.Face ?? string.Empty),
                         r.X.ToString(CultureInfo.InvariantCulture), r.Y.ToString(CultureInfo.InvariantCulture), r.Severity.ToString(CultureInfo.InvariantCulture),
                         Csv(r.CodeRaw), clusterId.ToString(CultureInfo.InvariantCulture)
                     }));
@@ -112,11 +130,20 @@ namespace BizCsvAnalyzer.Services
         }
 
         // Aggregate 出力
-        await aggWriter.WriteLineAsync("Code,Count,Ratio");
-        foreach (var kv in byCode.OrderByDescending(k => k.Value))
+        if (aggWriter == null)
         {
-            var ratio = total > 0 ? (double)kv.Value / total : 0;
-            await aggWriter.WriteLineAsync(string.Join(',', Csv(kv.Key), kv.Value.ToString(CultureInfo.InvariantCulture), ratio.ToString("0.#####", CultureInfo.InvariantCulture)));
+            await EnsureWritersAsync(null);
+        }
+        await aggWriter.WriteLineAsync("Face,Code,Count,RatioInFace");
+        foreach (var faceEntry in byCode)
+        {
+            var face = faceEntry.Key ?? string.Empty;
+            int ft = 0; faceTotals.TryGetValue(face, out ft);
+            foreach (var kv in faceEntry.Value.OrderByDescending(k => k.Value))
+            {
+                var ratio = ft > 0 ? (double)kv.Value / ft : 0;
+                await aggWriter.WriteLineAsync(string.Join(',', Csv(face), Csv(kv.Key), kv.Value.ToString(CultureInfo.InvariantCulture), ratio.ToString("0.#####", CultureInfo.InvariantCulture)));
+            }
         }
 
         // Alarm 出力
@@ -133,6 +160,11 @@ namespace BizCsvAnalyzer.Services
         }
 
         _logger.LogInformation("集計:{Agg} クラスタ:{Clu} アラーム:{Alm}", aggregatePath, clusterPath, alarmPath);
+        await aggWriter.DisposeAsync();
+        await cluWriter.DisposeAsync();
+        await almWriter.DisposeAsync();
+
+        _logger.LogInformation("出力:集計:{Agg} クラスタ:{Clu} アラーム:{Alm}", aggregatePath, clusterPath, alarmPath);
         return new AnalyzerResult(aggregatePath, clusterPath, alarmPath);
     }
 

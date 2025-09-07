@@ -12,6 +12,9 @@ out/logs/
 out/cache/
 out/exports/
 
+# Local sandbox sample inputs
+sandbox/
+
 # Tests
 TestResults/
 

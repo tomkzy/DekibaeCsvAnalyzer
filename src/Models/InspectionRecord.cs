@@ -19,8 +19,26 @@ namespace BizCsvAnalyzer.Models
         public DateTime Timestamp { get; set; }
         public string EquipmentCode { get; set; } = string.Empty;
         public string LedgerNo { get; set; } = string.Empty;
+        public string Face { get; set; } = string.Empty; // [FT] / [BK]
         public double X { get; set; }
         public double Y { get; set; }
+        // 以下はベンダ形式(11行目以降)の指標群
+        public double Area { get; set; }
+        public int R { get; set; }
+        public int G { get; set; }
+        public int B { get; set; }
+        public double Hue { get; set; }
+        public double Luminance { get; set; }
+        public double Saturation { get; set; }
+        public double Circularity { get; set; }
+        public double Convexity { get; set; }
+        public double Rectangularity { get; set; }
+        public double Sobel { get; set; }
+        public double LongSide { get; set; }
+        public double ShortSide { get; set; }
+        public double Phi { get; set; }
+        public int PieceRepeat { get; set; }
+        public int SheetRepeat { get; set; }
         public int Severity { get; set; }
         public string CodeRaw { get; set; } = string.Empty;
     }
