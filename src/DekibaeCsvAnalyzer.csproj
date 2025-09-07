@@ -22,6 +22,8 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <AvaloniaXaml Remove="App.axaml" />
+    <AvaloniaXaml Remove="Views/MainWindow.axaml" />
     <AvaloniaResource Include="App.axaml" />
     <AvaloniaResource Include="Views/MainWindow.axaml" />
   </ItemGroup>
