@@ -157,9 +157,11 @@ namespace DekibaeCsvAnalyzer.Services
             var end = start.Add(conditions.AlarmWindow);
             var count = kv.Value;
             var alarm = count > conditions.AlarmThreshold ? 1 : 0; // “超” → strictly greater
+            // 閾値以上(>=)に統一（コメントと実装の不一致を是正）
+            alarm = (count >= conditions.AlarmThreshold) ? 1 : 0;
             await alw.WriteLineAsync(string.Join(',',
                 start.ToString("yyyy-MM-dd HH:mm:ss"), end.ToString("yyyy-MM-dd HH:mm:ss"),
-                count.ToString(CultureInfo.InvariantCulture), conditions.AlarmThreshold.ToString(CultureInfo.InvariantCulture), ((count >= conditions.AlarmThreshold) ? 1 : 0).ToString(CultureInfo.InvariantCulture)));
+                count.ToString(CultureInfo.InvariantCulture), conditions.AlarmThreshold.ToString(CultureInfo.InvariantCulture), alarm.ToString(CultureInfo.InvariantCulture)));
         }
 
         _logger.LogInformation("集計:{Agg} クラスタ:{Clu} アラーム:{Alm}", aggregatePath, clusterPath, alarmPath);
