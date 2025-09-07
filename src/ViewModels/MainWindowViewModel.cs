@@ -86,13 +86,17 @@ namespace DekibaeCsvAnalyzer.ViewModels
             {
                 var ct = _cts.Token;
 
-                // Logging factory (file + console)
-                var (factory, logPath) = DekibaeCsvAnalyzer.Logging.Logging.SimpleFileLoggerFactory(Path.Combine(OutputRootResolved(), "logs"));
-                StatusText = $"Log: {logPath}";
+                // Logging factory (file + console) — ensure disposal after each run
+                ILoggerFactory? loggerFactory = null;
+                try
+                {
+                    var pair = DekibaeCsvAnalyzer.Logging.Logging.SimpleFileLoggerFactory(Path.Combine(OutputRootResolved(), "logs"));
+                    loggerFactory = pair.Factory;
+                    StatusText = $"Log: {pair.LogPath}";
 
-                var scanner = new PathScanner(factory.CreateLogger<PathScanner>());
-                var loader = new CsvLoader(factory.CreateLogger<CsvLoader>());
-                var analyzer = new Analyzer(factory.CreateLogger<Analyzer>());
+                    var scanner = new PathScanner(loggerFactory.CreateLogger<PathScanner>());
+                    var loader = new CsvLoader(loggerFactory.CreateLogger<CsvLoader>());
+                    var analyzer = new Analyzer(loggerFactory.CreateLogger<Analyzer>());
 
                 // Build conditions
                 DateTime? from = null; DateTime? to = null;
@@ -141,13 +145,18 @@ namespace DekibaeCsvAnalyzer.ViewModels
                     }
                 }
 
-                var outRoot = OutputRootResolved();
-                Directory.CreateDirectory(Path.Combine(outRoot, "exports"));
-                var result = await analyzer.RunAsync(LoadAll(ct), cond, outRoot, ct);
-                RecentOutputs.Insert(0, result.AggregatePath);
-                RecentOutputs.Insert(0, result.ClusterPath);
-                RecentOutputs.Insert(0, result.AlarmPath);
-                StatusText = "Analysis completed.";
+                    var outRoot = OutputRootResolved();
+                    Directory.CreateDirectory(Path.Combine(outRoot, "exports"));
+                    var result = await analyzer.RunAsync(LoadAll(ct), cond, outRoot, ct);
+                    RecentOutputs.Insert(0, result.AggregatePath);
+                    RecentOutputs.Insert(0, result.ClusterPath);
+                    RecentOutputs.Insert(0, result.AlarmPath);
+                    StatusText = "Analysis completed.";
+                }
+                finally
+                {
+                    try { loggerFactory?.Dispose(); } catch { }
+                }
             }
             catch (OperationCanceledException)
             {

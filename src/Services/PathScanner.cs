@@ -96,14 +96,20 @@ namespace DekibaeCsvAnalyzer.Services
         // Streaming-safe directory enumeration (top directory only), with per-iteration exception handling
         private IEnumerable<string> EnumerateDirectoriesTopSafe(string path, System.Threading.CancellationToken ct)
         {
-            var e = Directory.EnumerateDirectories(path).GetEnumerator();
+            System.Collections.Generic.IEnumerator<string>? e = null;
             try
             {
+                try
+                {
+                    e = Directory.EnumerateDirectories(path).GetEnumerator();
+                }
+                catch (UnauthorizedAccessException ex) { _logger.LogWarning(ex, "ディレクトリ列挙に失敗: {Path}", path); yield break; }
+                catch (IOException ex) { _logger.LogWarning(ex, "ディレクトリ列挙に失敗: {Path}", path); yield break; }
                 while (true)
                 {
                     ct.ThrowIfCancellationRequested();
                     bool moved;
-                    try { moved = e.MoveNext(); }
+                    try { moved = e!.MoveNext(); }
                     catch (UnauthorizedAccessException ex) { _logger.LogWarning(ex, "ディレクトリ列挙に失敗: {Path}", path); yield break; }
                     catch (IOException ex) { _logger.LogWarning(ex, "ディレクトリ列挙に失敗: {Path}", path); yield break; }
                     if (!moved) yield break;
@@ -126,14 +132,20 @@ namespace DekibaeCsvAnalyzer.Services
                 ct.ThrowIfCancellationRequested();
                 var dir = stack.Pop();
 
-                var fe = Directory.EnumerateFiles(dir, pattern, SearchOption.TopDirectoryOnly).GetEnumerator();
+                System.Collections.Generic.IEnumerator<string>? fe = null;
                 try
                 {
+                    try
+                    {
+                        fe = Directory.EnumerateFiles(dir, pattern, SearchOption.TopDirectoryOnly).GetEnumerator();
+                    }
+                    catch (UnauthorizedAccessException ex) { _logger.LogWarning(ex, "ファイル列挙に失敗: {Path}", dir); goto PushDirs; }
+                    catch (IOException ex) { _logger.LogWarning(ex, "ファイル列挙に失敗: {Path}", dir); goto PushDirs; }
                     while (true)
                     {
                         ct.ThrowIfCancellationRequested();
                         bool moved;
-                        try { moved = fe.MoveNext(); }
+                        try { moved = fe!.MoveNext(); }
                         catch (UnauthorizedAccessException ex) { _logger.LogWarning(ex, "ファイル列挙に失敗: {Path}", dir); break; }
                         catch (IOException ex) { _logger.LogWarning(ex, "ファイル列挙に失敗: {Path}", dir); break; }
                         if (!moved) break;
@@ -144,7 +156,7 @@ namespace DekibaeCsvAnalyzer.Services
                 {
                     (fe as IDisposable)?.Dispose();
                 }
-
+            PushDirs:
                 foreach (var sub in EnumerateDirectoriesTopSafe(dir, ct))
                 {
                     stack.Push(sub);
