@@ -36,7 +36,7 @@ namespace DekibaeCsvAnalyzer.Services
                     if (Directory.Exists(p)) yield return p;
                     yield break;
                 }
-                foreach (var d in SafeEnumerateDirectoriesEager(inputRoot)) yield return d;
+                foreach (var d in EnumerateDirectoriesTopSafe(inputRoot, cancellationToken)) yield return d;
             }
 
             foreach (var icDir in IcDirs())
@@ -53,7 +53,7 @@ namespace DekibaeCsvAnalyzer.Services
                     }
                     var from = dateFrom ?? DateTime.MinValue;
                     var to = dateTo ?? DateTime.MaxValue;
-                    foreach (var d in SafeEnumerateDirectoriesEager(icDir))
+                    foreach (var d in EnumerateDirectoriesTopSafe(icDir, cancellationToken))
                     {
                         var name = Path.GetFileName(d);
                         DateTime dt;
@@ -76,19 +76,78 @@ namespace DekibaeCsvAnalyzer.Services
                             if (Directory.Exists(p)) yield return p;
                             yield break;
                         }
-                        foreach (var d in SafeEnumerateDirectoriesEager(dateDir)) yield return d;
+                        foreach (var d in EnumerateDirectoriesTopSafe(dateDir, cancellationToken)) yield return d;
                     }
 
                     foreach (var lotDir in LotDirs())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        foreach (var file in SafeEnumerateFilesEager(lotDir, "*.csv"))
+                        foreach (var file in EnumerateFilesRecursiveSafe(lotDir, "*.csv", cancellationToken))
                         {
                             cancellationToken.ThrowIfCancellationRequested();
                             yield return file;
                         }
                     }
+                }
+            }
+        }
+
+        // Streaming-safe directory enumeration (top directory only), with per-iteration exception handling
+        private IEnumerable<string> EnumerateDirectoriesTopSafe(string path, System.Threading.CancellationToken ct)
+        {
+            var e = Directory.EnumerateDirectories(path).GetEnumerator();
+            try
+            {
+                while (true)
+                {
+                    ct.ThrowIfCancellationRequested();
+                    bool moved;
+                    try { moved = e.MoveNext(); }
+                    catch (UnauthorizedAccessException ex) { _logger.LogWarning(ex, "ディレクトリ列挙に失敗: {Path}", path); yield break; }
+                    catch (IOException ex) { _logger.LogWarning(ex, "ディレクトリ列挙に失敗: {Path}", path); yield break; }
+                    if (!moved) yield break;
+                    yield return e.Current!;
+                }
+            }
+            finally
+            {
+                (e as IDisposable)?.Dispose();
+            }
+        }
+
+        // Streaming, stack-based recursive file enumeration with cancellation and per-iteration exception handling
+        private IEnumerable<string> EnumerateFilesRecursiveSafe(string root, string pattern, System.Threading.CancellationToken ct)
+        {
+            var stack = new Stack<string>();
+            stack.Push(root);
+            while (stack.Count > 0)
+            {
+                ct.ThrowIfCancellationRequested();
+                var dir = stack.Pop();
+
+                var fe = Directory.EnumerateFiles(dir, pattern, SearchOption.TopDirectoryOnly).GetEnumerator();
+                try
+                {
+                    while (true)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        bool moved;
+                        try { moved = fe.MoveNext(); }
+                        catch (UnauthorizedAccessException ex) { _logger.LogWarning(ex, "ファイル列挙に失敗: {Path}", dir); break; }
+                        catch (IOException ex) { _logger.LogWarning(ex, "ファイル列挙に失敗: {Path}", dir); break; }
+                        if (!moved) break;
+                        yield return fe.Current!;
+                    }
+                }
+                finally
+                {
+                    (fe as IDisposable)?.Dispose();
+                }
+
+                foreach (var sub in EnumerateDirectoriesTopSafe(dir, ct))
+                {
+                    stack.Push(sub);
                 }
             }
         }
