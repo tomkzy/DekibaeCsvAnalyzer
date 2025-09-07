@@ -129,7 +129,7 @@ internal class Program
         {
             // locate BizCsvAnalyzer/src/appsettings.json relative to this runner
             var baseDir = AppContext.BaseDirectory;
-            var candidate = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "src", "appsettings.json"));
+            var candidate = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "..", "src", "appsettings.json"));
             if (!File.Exists(candidate)) return null;
             using var s = File.OpenRead(candidate);
             using var doc = JsonDocument.Parse(s);
@@ -152,7 +152,7 @@ internal class Program
         try
         {
             var baseDir = AppContext.BaseDirectory;
-            var candidate = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "src", "appsettings.json"));
+            var candidate = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "..", "src", "appsettings.json"));
             if (!File.Exists(candidate)) return null;
             using var s = File.OpenRead(candidate);
             using var doc = JsonDocument.Parse(s);
@@ -174,7 +174,7 @@ internal class Program
         try
         {
             var baseDir = AppContext.BaseDirectory;
-            var candidate = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "src", "appsettings.json"));
+            var candidate = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "..", "src", "appsettings.json"));
             if (!File.Exists(candidate)) return null;
             using var s = File.OpenRead(candidate);
             using var doc = JsonDocument.Parse(s);
@@ -232,7 +232,7 @@ internal class Program
     {
         if (Path.IsPathRooted(path)) return path;
         // tools/CsvScanRunner/bin/Debug/net8.0/ → DekibaeCsvAnalyzer
-        var repoRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
+        var repoRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
         return Path.GetFullPath(Path.Combine(repoRoot, path));
     }
 }
