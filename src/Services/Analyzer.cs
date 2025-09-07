@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices; // ConfigureAwait for IAsyncEnumerable
 using Microsoft.Extensions.Logging;
 using DekibaeCsvAnalyzer.Domain;
 using DekibaeCsvAnalyzer.Models;
@@ -75,7 +76,7 @@ namespace DekibaeCsvAnalyzer.Services
                 cluWriter = new StreamWriter(clusterPath,   false, new System.Text.UTF8Encoding(true));
                 almWriter = new StreamWriter(alarmPath,     false, new System.Text.UTF8Encoding(true));
 
-                await cluWriter.WriteLineAsync("LotNo,Timestamp,EquipmentCode,LedgerNo,Face,X,Y,Severity,CodeRaw,ClusterId");
+                await cluWriter.WriteLineAsync("LotNo,Timestamp,EquipmentCode,LedgerNo,Face,X,Y,Severity,CodeRaw,ClusterId").ConfigureAwait(false);
             }
 
             var byCode = new Dictionary<string, Dictionary<string, int>>(StringComparer.OrdinalIgnoreCase); // Face -> Code -> Count
@@ -93,14 +94,14 @@ namespace DekibaeCsvAnalyzer.Services
                 var e = source.GetAsyncEnumerator(ct);
                 try
                 {
-                    while (await e.MoveNextAsync())
+                    while (await e.MoveNextAsync().ConfigureAwait(false))
                     {
                         ct.ThrowIfCancellationRequested();
                         var r = e.Current;
                         if (!Match(r, conditions)) continue;
 
                         if (first == null) first = r;
-                        await EnsureWritersAsync(first.EquipmentCode);
+                        await EnsureWritersAsync(first.EquipmentCode).ConfigureAwait(false);
                         var clw = cluWriter!;
 
                         total++;
@@ -118,7 +119,7 @@ namespace DekibaeCsvAnalyzer.Services
                             Csv(r.LotNo), r.Timestamp.ToString("yyyy-MM-dd HH:mm:ss"), Csv(r.EquipmentCode), Csv(r.LedgerNo), Csv(r.Face ?? string.Empty),
                             r.X.ToString(CultureInfo.InvariantCulture), r.Y.ToString(CultureInfo.InvariantCulture), r.Severity.ToString(CultureInfo.InvariantCulture),
                             Csv(r.CodeRaw), clusterId.ToString(CultureInfo.InvariantCulture)
-                        }));
+                        })).ConfigureAwait(false);
 
                         // アラーム判定用の時間窓バケット開始Ticksを計算
                         var ws = (r.Timestamp.Ticks / alarmWinTicks) * alarmWinTicks;
@@ -128,7 +129,7 @@ namespace DekibaeCsvAnalyzer.Services
                         if (total % 10000 == 0) clusterer.Prune(r.Timestamp);
                     }
                 }
-                finally { if (e != null) await e.DisposeAsync(); }
+                finally { if (e != null) await e.DisposeAsync().ConfigureAwait(false); }
             }
             finally
             {
@@ -138,11 +139,11 @@ namespace DekibaeCsvAnalyzer.Services
             // Aggregate/Alarm 出力
             if (aggWriter == null || almWriter == null || cluWriter == null)
             {
-                await EnsureWritersAsync(first?.EquipmentCode);
+                await EnsureWritersAsync(first?.EquipmentCode).ConfigureAwait(false);
             }
             var agw = aggWriter!;
             var alw = almWriter!;
-            await agw.WriteLineAsync("Face,Code,Count,RatioInFace");
+            await agw.WriteLineAsync("Face,Code,Count,RatioInFace").ConfigureAwait(false);
 
             foreach (var faceEntry in byCode)
             {
@@ -151,12 +152,12 @@ namespace DekibaeCsvAnalyzer.Services
                 foreach (var kv in faceEntry.Value.OrderByDescending(k => k.Value))
                 {
                     var ratio = ft > 0 ? (double)kv.Value / ft : 0;
-                    await agw.WriteLineAsync(string.Join(',', Csv(face), Csv(kv.Key), kv.Value.ToString(CultureInfo.InvariantCulture), ratio.ToString("0.#####", CultureInfo.InvariantCulture)));
+                    await agw.WriteLineAsync(string.Join(',', Csv(face), Csv(kv.Key), kv.Value.ToString(CultureInfo.InvariantCulture), ratio.ToString("0.#####", CultureInfo.InvariantCulture))).ConfigureAwait(false);
                 }
             }
 
             // Alarm 出力
-            await alw.WriteLineAsync("WindowStart,WindowEnd,Count,Threshold,Alarm");
+            await alw.WriteLineAsync("WindowStart,WindowEnd,Count,Threshold,Alarm").ConfigureAwait(false);
             foreach (var kv in alarmCounts)
             {
                 var start = new DateTime(kv.Key, DateTimeKind.Local);
@@ -169,12 +170,12 @@ namespace DekibaeCsvAnalyzer.Services
                     end.ToString("yyyy-MM-dd HH:mm:ss"),
                     count.ToString(CultureInfo.InvariantCulture),
                     conditions.AlarmThreshold.ToString(CultureInfo.InvariantCulture),
-                    alarm.ToString(CultureInfo.InvariantCulture)));
+                    alarm.ToString(CultureInfo.InvariantCulture))).ConfigureAwait(false);
             }
 
-            await agw.FlushAsync();
-            await alw.FlushAsync();
-            await cluWriter!.FlushAsync();
+            await agw.FlushAsync().ConfigureAwait(false);
+            await alw.FlushAsync().ConfigureAwait(false);
+            await cluWriter!.FlushAsync().ConfigureAwait(false);
             agw.Dispose(); alw.Dispose(); cluWriter.Dispose();
 
             return new AnalyzerResult(aggregatePath!, clusterPath!, alarmPath!);
@@ -289,4 +290,3 @@ namespace DekibaeCsvAnalyzer.Services
         }
     }
 }
-
