@@ -7,9 +7,9 @@ using Microsoft.Extensions.Logging;
 using DekibaeCsvAnalyzer.Models;
 
 /*
-  例外/ロギング/キャンセル方針
-  - 読み込み時: 不正行はスキップして WARN ログ。致命的IO例外は上位へ再スロー。
-  - ロードは遅延初期化し、スレッドセーフにキャッシュ。キャンセルは未対応（小規模I/O想定）。
+  ロギング/キャンセル方針
+  - 読み込み時: 不正行はスキップして WARN ログ。致命的 I/O 例外は上位へ再スロー。
+  - ロードは遅延初期化し、スレッドセーフにキャッシュ。キャンセルは未対応（小規模 I/O 想定）。
 */
 
 namespace DekibaeCsvAnalyzer.Services
@@ -52,7 +52,7 @@ namespace DekibaeCsvAnalyzer.Services
 
             using (var sr = new StreamReader(_codebookPath))
             {
-                string line;
+                string? line;
                 var lineNo = 0;
                 while ((line = sr.ReadLine()) != null)
                 {
@@ -67,8 +67,7 @@ namespace DekibaeCsvAnalyzer.Services
                     }
                     var codeStr = s.Substring(0, uscore);
                     var key = s.Substring(uscore + 1);
-                    int code;
-                    if (!int.TryParse(codeStr, NumberStyles.Integer, CultureInfo.InvariantCulture, out code))
+                    if (!int.TryParse(codeStr, NumberStyles.Integer, CultureInfo.InvariantCulture, out var code))
                     {
                         _logger.LogWarning("不正なコード番号({Line}): {Value}", lineNo, s);
                         continue;
@@ -94,3 +93,4 @@ namespace DekibaeCsvAnalyzer.Services
         }
     }
 }
+

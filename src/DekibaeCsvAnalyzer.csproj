@@ -21,4 +21,10 @@
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup>
+    <AvaloniaXaml Remove="App.axaml" />
+    <AvaloniaXaml Remove="Views/MainWindow.axaml" />
+    <AvaloniaResource Include="App.axaml" />
+    <AvaloniaResource Include="Views/MainWindow.axaml" />
+  </ItemGroup>
 </Project>

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using DekibaeCsvAnalyzer.Domain;
@@ -16,6 +17,7 @@ internal class Program
 {
     private static async Task<int> Main(string[] args)
     {
+        try { Console.OutputEncoding = Encoding.UTF8; } catch { }
         var (root, ic, lot, date, codebookPath, trendCodes) = ParseArgs(args);
         using var loggerFactory = LoggerFactory.Create(b => b.AddConsole().SetMinimumLevel(LogLevel.Information));
         var logger = loggerFactory.CreateLogger("Runner");
@@ -47,8 +49,13 @@ internal class Program
             To = date?.Date.AddDays(1).AddTicks(-1),
         };
 
-        var outRoot = Path.Combine(Path.GetDirectoryName(root) ?? root, "..", "out");
+        var outRoot = TryReadOutputRootFromAppSettings();
+        if (string.IsNullOrWhiteSpace(outRoot))
+        {
+            outRoot = Path.Combine(Path.GetDirectoryName(root) ?? root, "..", "out");
+        }
         outRoot = Path.GetFullPath(outRoot);
+        logger.LogInformation("OutputRoot: {Root}", outRoot);
         var analyzer = new Analyzer(loggerFactory.CreateLogger<Analyzer>());
         var result = await analyzer.RunAsync(LoadAll(files, loader, cts.Token), conditions, outRoot, cts.Token);
         logger.LogInformation("Aggregate: {Agg}\nCluster: {Clu}\nAlarm: {Alm}", result.AggregatePath, result.ClusterPath, result.AlarmPath);
@@ -122,14 +129,40 @@ internal class Program
         {
             // locate BizCsvAnalyzer/src/appsettings.json relative to this runner
             var baseDir = AppContext.BaseDirectory;
-            var candidate = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "src", "appsettings.json"));
+            var candidate = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "..", "src", "appsettings.json"));
             if (!File.Exists(candidate)) return null;
             using var s = File.OpenRead(candidate);
             using var doc = JsonDocument.Parse(s);
             if (doc.RootElement.TryGetProperty("Paths", out var paths) && paths.TryGetProperty("InputRoot", out var inputRoot))
             {
                 var v = inputRoot.GetString();
-                if (!string.IsNullOrWhiteSpace(v)) return v;
+                if (!string.IsNullOrWhiteSpace(v))
+                {
+                    // Resolve relative to repo root if needed
+                    return ResolvePathRelativeToRepo(v);
+                }
+            }
+        }
+        catch { }
+        return null;
+    }
+
+    private static string? TryReadOutputRootFromAppSettings()
+    {
+        try
+        {
+            var baseDir = AppContext.BaseDirectory;
+            var candidate = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "..", "src", "appsettings.json"));
+            if (!File.Exists(candidate)) return null;
+            using var s = File.OpenRead(candidate);
+            using var doc = JsonDocument.Parse(s);
+            if (doc.RootElement.TryGetProperty("Paths", out var paths) && paths.TryGetProperty("OutputRoot", out var outputRoot))
+            {
+                var v = outputRoot.GetString();
+                if (!string.IsNullOrWhiteSpace(v))
+                {
+                    return ResolvePathRelativeToRepo(v);
+                }
             }
         }
         catch { }
@@ -141,7 +174,7 @@ internal class Program
         try
         {
             var baseDir = AppContext.BaseDirectory;
-            var candidate = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "src", "appsettings.json"));
+            var candidate = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "..", "src", "appsettings.json"));
             if (!File.Exists(candidate)) return null;
             using var s = File.OpenRead(candidate);
             using var doc = JsonDocument.Parse(s);
@@ -199,7 +232,7 @@ internal class Program
     {
         if (Path.IsPathRooted(path)) return path;
         // tools/CsvScanRunner/bin/Debug/net8.0/ → DekibaeCsvAnalyzer
-        var repoRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
+        var repoRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
         return Path.GetFullPath(Path.Combine(repoRoot, path));
     }
 }

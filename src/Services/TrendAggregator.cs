@@ -33,15 +33,15 @@ namespace DekibaeCsvAnalyzer.Services
             string dateRange = RangeLabel(conditions.From, conditions.To);
             var outPath = Path.Combine(outputsDir, $"Trend_{icName}_{lotName}_{dateRange}_{tsStamp}.csv");
 
-            // 正規化したターゲット列名（'01_Kizu' 等）。null/空は何もしない
+            // 正規化したターゲット列名（例: '01_Kizu' 等）。null/空は何もしない
             var targets = NormalizeSelectors(codeSelectors);
             if (targets.Count == 0)
             {
-                _logger.LogWarning("トレンド対象の検出コードが指定されていません（--trend-codes）。スキップします。");
+                _logger.LogWarning("トレンド対象の検査コードが指定されていません（--trend-codes）。スキップします。");
                 return outPath;
             }
 
-            // 集計: Date → code → count
+            // 日付 -> code -> count
             var daily = new SortedDictionary<DateTime, Dictionary<string, int>>();
             await foreach (var r in source.WithCancellation(ct))
             {
@@ -54,7 +54,7 @@ namespace DekibaeCsvAnalyzer.Services
                 var normalized = NormalizeCodeRaw(raw);
                 if (!targets.Contains(normalized))
                 {
-                    // 'Kizu' だけの指定や CodeRaw が 'Kizu' の場合の互換対応
+                    // 'Kizu' だけ指定や CodeRaw が 'Kizu' の場合の互換対応
                     var keyOnly = ExtractKey(raw);
                     if (keyOnly == null || !targets.Contains(keyOnly)) continue;
                     normalized = keyOnly;
@@ -107,7 +107,7 @@ namespace DekibaeCsvAnalyzer.Services
             // 既に '01_Kizu' 形式
             var us = raw.IndexOf('_');
             if (us > 0 && us < raw.Length - 1) return raw;
-            // '01' 単独の指定などを救済しない（キー単独は ExtractKey に任せる）
+            // '01' 単独の指定などは救済しない。キー単独は ExtractKey に任せる。
             return raw;
         }
 

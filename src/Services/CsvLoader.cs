@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices; // ConfigureAwait for IAsyncEnumerable
 using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.Extensions.Logging;
@@ -15,7 +16,7 @@ namespace DekibaeCsvAnalyzer.Services
 {
     public interface ICsvLoader
     {
-        IAsyncEnumerable<InspectionRecord> LoadAsync(string path, CancellationToken ct = default(CancellationToken));
+        IAsyncEnumerable<InspectionRecord> LoadAsync(string path, CancellationToken ct = default);
     }
 
     public sealed class CsvLoader : ICsvLoader
@@ -23,7 +24,7 @@ namespace DekibaeCsvAnalyzer.Services
         private readonly ILogger<CsvLoader> _logger;
         public CsvLoader(ILogger<CsvLoader> logger) { _logger = logger; }
 
-        public async IAsyncEnumerable<InspectionRecord> LoadAsync(string path, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken ct = default(CancellationToken))
+        public async IAsyncEnumerable<InspectionRecord> LoadAsync(string path, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken ct = default)
         {
             _logger.LogInformation("CSV読込開始: {Path}", path);
             if (!File.Exists(path)) yield break;
@@ -32,16 +33,16 @@ namespace DekibaeCsvAnalyzer.Services
             using (var reader = new StreamReader(fs, DetectEncodingFromBOMOrDefault(fs, Encoding.UTF8), detectEncodingFromByteOrderMarks: true, bufferSize: 4096, leaveOpen: false))
             {
                 // ベンダー(縦持ちメタ + 欠陥行)形式を先に検出
-                if (await IsVendorFormatAsync(reader, ct))
+                if (await IsVendorFormatAsync(reader, ct).ConfigureAwait(false))
                 {
-                    await foreach (var r in LoadVendorAsync(reader, ct))
+                    await foreach (var r in LoadVendorAsync(reader, ct).ConfigureAwait(false))
                     {
                         yield return r;
                     }
                     yield break;
                 }
 
-                var det = await DetectDelimiterAndHeaderAsync(reader, ct);
+                var det = await DetectDelimiterAndHeaderAsync(reader, ct).ConfigureAwait(false);
                 var delimiter = det.Delimiter ?? ",";
                 var headerOffset = det.HeaderOffset;
                 _logger.LogInformation("区切り文字: '{Delimiter}' ヘッダー行オフセット: {Offset}", delimiter.Replace("\t", "\\t"), headerOffset);
@@ -54,13 +55,13 @@ namespace DekibaeCsvAnalyzer.Services
                     TrimOptions = TrimOptions.Trim,
                 };
 
-                // ヘッダーの余白や前置行への対応（Trim）
+                // ヘッダーの余白や空置行への対応（Trim）
                 config.PrepareHeaderForMatch = args => args.Header == null ? null : args.Header.Trim();
 
                 // ゴミ行が存在する場合はヘッダー行までスキップ
                 for (var i = 0; i < headerOffset; i++)
                 {
-                    await reader.ReadLineAsync();
+                    await reader.ReadLineAsync().ConfigureAwait(false);
                 }
 
                 using (var csv = new CsvReader(reader, config))
@@ -68,11 +69,11 @@ namespace DekibaeCsvAnalyzer.Services
                     csv.Context.RegisterClassMap<InspectionRecordMap>();
 
                     // ヘッダー読み
-                    await csv.ReadAsync();
+                    await csv.ReadAsync().ConfigureAwait(false);
                     csv.ReadHeader();
 
                     var skipped = 0;
-                    while (await csv.ReadAsync())
+                    while (await csv.ReadAsync().ConfigureAwait(false))
                     {
                         ct.ThrowIfCancellationRequested();
                         InspectionRecord? rec = null;
@@ -119,7 +120,7 @@ namespace DekibaeCsvAnalyzer.Services
                 var lines = new List<string>();
                 for (int i = 0; i < 50; i++)
                 {
-                    var l = await reader.ReadLineAsync();
+                    var l = await reader.ReadLineAsync().ConfigureAwait(false);
                     if (l == null) break;
                     lines.Add(l);
                 }
@@ -189,7 +190,7 @@ namespace DekibaeCsvAnalyzer.Services
             try
             {
                 // 先頭行を見て 'IC' 単語かどうか
-                var first = await reader.ReadLineAsync();
+                var first = await reader.ReadLineAsync().ConfigureAwait(false);
                 if (first == null) return false;
                 var head = first.Split(',')[0].Trim();
                 return string.Equals(head, "IC", StringComparison.OrdinalIgnoreCase);
@@ -206,15 +207,15 @@ namespace DekibaeCsvAnalyzer.Services
             // フォーマット:
             // 1: IC
             // 2: LotNo(8桁)
-            // 3: SheetNo(1-2桁)
+            // 3: SheetNo(1-2桁) ※未使用
             // 4: yyyyMMdd-HHmmss
             // 5: EquipmentCode (例: NG1ISL001)
             // 6: 台帳No (例: 9123-321)
-            // 7: 補材No (例: H-2) — 未使用
+            // 7: 補材No (例: H-2)  ※未使用
             // 8: 空行
-            // 9: 面情報 (FT/BK)
+            // 9: 面種別 (FT/BK)
             // 10: 検出数
-            // 11以降: 欠陥行: CodeRaw,X,Y,Area,R,G,B,Hue,Luminance,Saturation,circularity,convexity,rectangularity,Sobel値,LongSide,ShortSide,Phi,ピース間同一連続,シート間同一数
+            // 11以降: 欠陥行 CodeRaw,X,Y,Area,R,G,B,Hue,Luminance,Saturation,circularity,convexity,rectangularity,Sobel値,LongSide,ShortSide,Phi,ピース間同一,シート間同一
             // 最終行に PrevData,... が来る
 
             string ReadFirstField(string? line)
@@ -224,17 +225,17 @@ namespace DekibaeCsvAnalyzer.Services
                 return (i >= 0 ? line.Substring(0, i) : line).Trim();
             }
 
-            // 必須メタ情報の取得
-            var line1 = await reader.ReadLineAsync(); // IC
-            var lotLine = await reader.ReadLineAsync();
-            var sheetLine = await reader.ReadLineAsync();
-            var dtLine = await reader.ReadLineAsync();
-            var eqLine = await reader.ReadLineAsync();
-            var ledgerLine = await reader.ReadLineAsync();
-            var subLine = await reader.ReadLineAsync();
-            var blankLine = await reader.ReadLineAsync();
-            var faceLine = await reader.ReadLineAsync();
-            var detCountLine = await reader.ReadLineAsync();
+            // 先頭メタ情報の取得
+            var line1 = await reader.ReadLineAsync().ConfigureAwait(false); // IC
+            var lotLine = await reader.ReadLineAsync().ConfigureAwait(false);
+            var sheetLine = await reader.ReadLineAsync().ConfigureAwait(false);
+            var dtLine = await reader.ReadLineAsync().ConfigureAwait(false);
+            var eqLine = await reader.ReadLineAsync().ConfigureAwait(false);
+            var ledgerLine = await reader.ReadLineAsync().ConfigureAwait(false);
+            var subLine = await reader.ReadLineAsync().ConfigureAwait(false);
+            var blankLine = await reader.ReadLineAsync().ConfigureAwait(false);
+            var faceLine = await reader.ReadLineAsync().ConfigureAwait(false);
+            var detCountLine = await reader.ReadLineAsync().ConfigureAwait(false);
 
             string lot = ReadFirstField(lotLine);
             string equipment = ReadFirstField(eqLine);
@@ -248,11 +249,11 @@ namespace DekibaeCsvAnalyzer.Services
                 DateTime.TryParse(dtToken, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out ts);
             }
 
-            // 欠陥行を読み出す
+            // 欠陥行を読み出し
             while (true)
             {
                 ct.ThrowIfCancellationRequested();
-                var line = await reader.ReadLineAsync();
+                var line = await reader.ReadLineAsync().ConfigureAwait(false);
                 if (line == null) yield break;
                 if (line.Length == 0) continue;
                 var first = ReadFirstField(line);
@@ -269,7 +270,7 @@ namespace DekibaeCsvAnalyzer.Services
                 double px = 0, py = 0;
                 if (!double.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out px)) px = 0;
                 if (!double.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out py)) py = 0;
-                // 以降の指標を個別に取得（2~17列目をすべて保持）
+                // 以降の値を個別に取得（存在しない場合は 0）
                 double area = GetD(parts, 3);
                 int r = (int)Math.Round(GetD(parts, 4));
                 int g = (int)Math.Round(GetD(parts, 5));
@@ -321,7 +322,7 @@ namespace DekibaeCsvAnalyzer.Services
         private static double GetD(string[] parts, int idx)
         {
             if (idx < 0 || idx >= parts.Length) return 0;
-            double v; return double.TryParse(parts[idx], NumberStyles.Float, CultureInfo.InvariantCulture, out v) ? v : 0;
+            return double.TryParse(parts[idx], NumberStyles.Float, CultureInfo.InvariantCulture, out var v) ? v : 0;
         }
     }
 }
