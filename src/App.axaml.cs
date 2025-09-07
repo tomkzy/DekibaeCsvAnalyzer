@@ -9,14 +9,7 @@ public partial class App : Application
 {
     public override void Initialize()
     {
-        try
-        {
-            AvaloniaXamlLoader.Load(this);
-        }
-        catch
-        {
-            // Fallback: continue without XAML (styles disabled)
-        }
+        AvaloniaXamlLoader.Load(this);
     }
 
     public override void OnFrameworkInitializationCompleted()

@@ -1,11 +1,11 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using DekibaeCsvAnalyzer.ViewModels;
-using Avalonia.Layout;
-using Avalonia;
 
 namespace DekibaeCsvAnalyzer.Views;
 
@@ -13,40 +13,20 @@ public partial class MainWindow : Window
 {
     public MainWindow()
     {
-        try
-        {
-            AvaloniaXamlLoader.Load(this);
-        }
-        catch
-        {
-            // Minimal fallback UI when XAML isn't available
-            var panel = new StackPanel { Spacing = 8, Margin = new Thickness(12) };
-            panel.Children.Add(new TextBlock { Text = "Dekibae CSV Analyzer", FontSize = 20 });
-            panel.Children.Add(new TextBlock { Text = "XAML ロードに失敗したため簡易UIで起動", Opacity = 0.7 });
-            Content = panel;
-        }
+        AvaloniaXamlLoader.Load(this);
         this.DataContext = new MainWindowViewModel();
         WireUiHandlers();
     }
 
     private void WireUiHandlers()
     {
-        // If no namescope (fallback UI), skip wiring
-        if (NameScope.GetNameScope(this) is null)
-            return;
-        Button? browseInput = null, browseCodebook = null, openOutput = null, openLogs = null;
-        try
-        {
-            browseInput = this.FindControl<Button>("BrowseInputButton");
-            browseCodebook = this.FindControl<Button>("BrowseCodebookButton");
-            openOutput = this.FindControl<Button>("OpenOutputButton");
-            openLogs = this.FindControl<Button>("OpenLogsButton");
-        }
-        catch
-        {
-            // Names not found (fallback UI). Skip wiring.
-            return;
-        }
+        // If XAML namescope is missing, skip wiring (should not happen with precompiled XAML)
+        if (NameScope.GetNameScope(this) is null) return;
+
+        var browseInput = this.FindControl<Button>("BrowseInputButton");
+        var browseCodebook = this.FindControl<Button>("BrowseCodebookButton");
+        var openOutput = this.FindControl<Button>("OpenOutputButton");
+        var openLogs = this.FindControl<Button>("OpenLogsButton");
 
         if (browseInput != null) browseInput.Click += async (_, __) =>
         {
@@ -111,3 +91,4 @@ public partial class MainWindow : Window
         catch { }
     }
 }
+

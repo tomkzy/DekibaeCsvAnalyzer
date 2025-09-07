@@ -120,7 +120,14 @@ namespace DekibaeCsvAnalyzer.ViewModels
                 };
 
                 var root = Path.GetFullPath(InputRoot);
-                var files = scanner.Enumerate(root, ic: string.IsNullOrWhiteSpace(IC) ? null : IC, lotNo: string.IsNullOrWhiteSpace(LotNo) ? null : LotNo, date: UseDateRange ? null : Date?.DateTime, cancellationToken: ct);
+                var files = scanner.Enumerate(
+                    root,
+                    ic: string.IsNullOrWhiteSpace(IC) ? null : IC,
+                    lotNo: string.IsNullOrWhiteSpace(LotNo) ? null : LotNo,
+                    date: UseDateRange ? (DateTime?)null : from,
+                    dateFrom: UseDateRange ? from : null,
+                    dateTo: UseDateRange ? to : null,
+                    cancellationToken: ct);
 
                 // Merge async enumerables (sequentially)
                 async IAsyncEnumerable<Models.InspectionRecord> LoadAll([EnumeratorCancellation] CancellationToken token)
@@ -239,4 +246,3 @@ namespace DekibaeCsvAnalyzer.ViewModels
         }
     }
 }
-

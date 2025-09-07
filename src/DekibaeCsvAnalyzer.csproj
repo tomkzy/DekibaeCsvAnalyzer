@@ -22,7 +22,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <AvaloniaXaml Remove="**/*.axaml" />
-    <AvaloniaResource Include="**/*.axaml" />
+    <AvaloniaXaml Include="**/*.axaml" />
   </ItemGroup>
 </Project>
