@@ -183,7 +183,7 @@ internal class Program
                     // 数字2桁 → コード
                     if (int.TryParse(s, out var num)) { outList.Add(num.ToString("00") + "_" + s); continue; }
                     // Key から検索
-                    BizCsvAnalyzer.Models.DefectCode d;
+                    DekibaeCsvAnalyzer.Models.DefectCode d;
                     if (repo.TryGetByKey(s, out d)) { outList.Add(d.ToString()); }
                     else { outList.Add(s); }
                 }
@@ -198,7 +198,7 @@ internal class Program
     private static string ResolvePathRelativeToRepo(string path)
     {
         if (Path.IsPathRooted(path)) return path;
-        // tools/CsvScanRunner/bin/Debug/net8.0/ → BizCsvAnalyzer
+        // tools/CsvScanRunner/bin/Debug/net8.0/ → DekibaeCsvAnalyzer
         var repoRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
         return Path.GetFullPath(Path.Combine(repoRoot, path));
     }
