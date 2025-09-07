@@ -13,7 +13,19 @@ public partial class MainWindow : Window
 {
     public MainWindow()
     {
-        AvaloniaXamlLoader.Load(this);
+        try
+        {
+            AvaloniaXamlLoader.Load(this);
+        }
+        catch
+        {
+            try
+            {
+                Environment.SetEnvironmentVariable("AVALONIA_LOAD_AS_XAML", "1");
+                AvaloniaXamlLoader.Load(this);
+            }
+            catch { /* fine, window can still show minimal content if needed */ }
+        }
         this.DataContext = new MainWindowViewModel();
         WireUiHandlers();
     }
