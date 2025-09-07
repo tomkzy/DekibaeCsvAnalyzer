@@ -13,7 +13,7 @@ public partial class MainWindow : Window
 {
     public MainWindow()
     {
-        InitializeComponent();
+        AvaloniaXamlLoader.Load(this);
         this.DataContext = new MainWindowViewModel();
         WireUiHandlers();
     }
