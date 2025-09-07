@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
+using System.Diagnostics; // 既定アプリでファイル/フォルダを開くため
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
@@ -69,6 +70,10 @@ namespace DekibaeCsvAnalyzer.ViewModels
 
         private RelayCommand? _saveSettingsCommand;
         public ICommand SaveSettingsCommand => _saveSettingsCommand ??= new RelayCommand(_ => SaveSettings());
+
+        // 個別出力の「開く」ボタン用コマンド（DataTemplate から親VMのコマンドを参照して実行）
+        private RelayCommand? _openPathCommand;
+        public ICommand OpenPathCommand => _openPathCommand ??= new RelayCommand(p => OpenPath(p as string), p => p is string s && !string.IsNullOrWhiteSpace(s));
 
         private void OnPropertyChanged([CallerMemberName] string? name = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
@@ -177,6 +182,27 @@ namespace DekibaeCsvAnalyzer.ViewModels
         private void Cancel()
         {
             _cts?.Cancel();
+        }
+
+        // 出力ファイル/フォルダを既定アプリで開く
+        private void OpenPath(string? path)
+        {
+            if (string.IsNullOrWhiteSpace(path)) return;
+            try
+            {
+                var full = Path.GetFullPath(path);
+                var target = File.Exists(full) || Directory.Exists(full) ? full : path;
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = target,
+                    UseShellExecute = true,
+                    Verb = "open",
+                });
+            }
+            catch (Exception ex)
+            {
+                StatusText = "Open error: " + ex.Message;
+            }
         }
 
         private string OutputRootResolved()

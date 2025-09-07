@@ -4,10 +4,10 @@ using System.IO;
 using Microsoft.Extensions.Logging;
 
 /*
-  例外/ロギング/キャンセル方針
-  - 入力ルートが存在しない場合: 例外にせず空列挙を返す（要件準拠）。
-  - ディレクトリアクセス不可/列挙失敗: WARN ログしスキップ継続。
-  - キャンセル: 列挙ループ中に CancellationToken を監視して即時中断。
+  例夁Eロギング/キャンセル方釁E
+  - 入力ルートが存在しなぁE��吁E 例外にせず空列挙を返す�E�要件準拠�E�、E
+  - チE��レクトリアクセス不可/列挙失敁E WARN ログしスキチE�E継続、E
+  - キャンセル: 列挙ループ中に CancellationToken を監視して即時中断、E
 */
 
 namespace DekibaeCsvAnalyzer.Services
@@ -103,15 +103,15 @@ namespace DekibaeCsvAnalyzer.Services
                 {
                     e = Directory.EnumerateDirectories(path).GetEnumerator();
                 }
-                catch (UnauthorizedAccessException ex) { _logger.LogWarning(ex, "ディレクトリ列挙に失敗: {Path}", path); yield break; }
-                catch (IOException ex) { _logger.LogWarning(ex, "ディレクトリ列挙に失敗: {Path}", path); yield break; }
+                catch (UnauthorizedAccessException ex) { _logger.LogWarning(ex, "チE��レクトリ列挙に失敁E {Path}", path); yield break; }
+                catch (IOException ex) { _logger.LogWarning(ex, "チE��レクトリ列挙に失敁E {Path}", path); yield break; }
                 while (true)
                 {
                     ct.ThrowIfCancellationRequested();
                     bool moved;
                     try { moved = e!.MoveNext(); }
-                    catch (UnauthorizedAccessException ex) { _logger.LogWarning(ex, "ディレクトリ列挙に失敗: {Path}", path); yield break; }
-                    catch (IOException ex) { _logger.LogWarning(ex, "ディレクトリ列挙に失敗: {Path}", path); yield break; }
+                    catch (UnauthorizedAccessException ex) { _logger.LogWarning(ex, "チE��レクトリ列挙に失敁E {Path}", path); yield break; }
+                    catch (IOException ex) { _logger.LogWarning(ex, "チE��レクトリ列挙に失敁E {Path}", path); yield break; }
                     if (!moved) yield break;
                     yield return e.Current!;
                 }
@@ -139,15 +139,15 @@ namespace DekibaeCsvAnalyzer.Services
                     {
                         fe = Directory.EnumerateFiles(dir, pattern, SearchOption.TopDirectoryOnly).GetEnumerator();
                     }
-                    catch (UnauthorizedAccessException ex) { _logger.LogWarning(ex, "ファイル列挙に失敗: {Path}", dir); goto PushDirs; }
-                    catch (IOException ex) { _logger.LogWarning(ex, "ファイル列挙に失敗: {Path}", dir); goto PushDirs; }
+                    catch (UnauthorizedAccessException ex) { _logger.LogWarning(ex, "ファイル列挙に失敁E {Path}", dir); goto PushDirs; }
+                    catch (IOException ex) { _logger.LogWarning(ex, "ファイル列挙に失敁E {Path}", dir); goto PushDirs; }
                     while (true)
                     {
                         ct.ThrowIfCancellationRequested();
                         bool moved;
                         try { moved = fe!.MoveNext(); }
-                        catch (UnauthorizedAccessException ex) { _logger.LogWarning(ex, "ファイル列挙に失敗: {Path}", dir); break; }
-                        catch (IOException ex) { _logger.LogWarning(ex, "ファイル列挙に失敗: {Path}", dir); break; }
+                        catch (UnauthorizedAccessException ex) { _logger.LogWarning(ex, "ファイル列挙に失敁E {Path}", dir); break; }
+                        catch (IOException ex) { _logger.LogWarning(ex, "ファイル列挙に失敁E {Path}", dir); break; }
                         if (!moved) break;
                         yield return fe.Current!;
                     }
@@ -176,7 +176,7 @@ namespace DekibaeCsvAnalyzer.Services
             {
                 if (ex is UnauthorizedAccessException || ex is IOException)
                 {
-                    _logger.LogWarning(ex, "ディレクトリ列挙に失敗: {Path}", path);
+                    _logger.LogWarning(ex, "チE��レクトリ列挙に失敁E {Path}", path);
                     return Array.Empty<string>();
                 }
                 throw;
@@ -194,7 +194,7 @@ namespace DekibaeCsvAnalyzer.Services
             {
                 if (ex is UnauthorizedAccessException || ex is IOException)
                 {
-                    _logger.LogWarning(ex, "ファイル列挙に失敗: {Path}", path);
+                    _logger.LogWarning(ex, "ファイル列挙に失敁E {Path}", path);
                     return Array.Empty<string>();
                 }
                 throw;
@@ -211,7 +211,7 @@ namespace DekibaeCsvAnalyzer.Services
             {
                 if (ex is UnauthorizedAccessException || ex is IOException)
                 {
-                    _logger.LogWarning(ex, "ディレクトリ列挙に失敗: {Path}", path);
+                    _logger.LogWarning(ex, "チE��レクトリ列挙に失敁E {Path}", path);
                     return new string[0];
                 }
                 throw;
@@ -228,7 +228,7 @@ namespace DekibaeCsvAnalyzer.Services
             {
                 if (ex is UnauthorizedAccessException || ex is IOException)
                 {
-                    _logger.LogWarning(ex, "ファイル列挙に失敗: {Path}", path);
+                    _logger.LogWarning(ex, "ファイル列挙に失敁E {Path}", path);
                     return new string[0];
                 }
                 throw;
@@ -236,3 +236,4 @@ namespace DekibaeCsvAnalyzer.Services
         }
     }
 }
+

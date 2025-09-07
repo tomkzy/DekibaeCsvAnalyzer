@@ -7,9 +7,9 @@ using Microsoft.Extensions.Logging;
 using DekibaeCsvAnalyzer.Models;
 
 /*
-  例外/ロギング/キャンセル方針
-  - 読み込み時: 不正行はスキップして WARN ログ。致命的IO例外は上位へ再スロー。
-  - ロードは遅延初期化し、スレッドセーフにキャッシュ。キャンセルは未対応（小規模I/O想定）。
+  例夁Eロギング/キャンセル方釁E
+  - 読み込み晁E 不正行�EスキチE�Eして WARN ログ。�E命的IO例外�E上位へ再スロー、E
+  - ロード�E遁E��初期化し、スレチE��セーフにキャチE��ュ。キャンセルは未対応（小規模I/O想定）、E
 */
 
 namespace DekibaeCsvAnalyzer.Services
@@ -46,7 +46,7 @@ namespace DekibaeCsvAnalyzer.Services
 
             if (!File.Exists(_codebookPath))
             {
-                _logger.LogWarning("コードブックが見つかりません: {Path}", _codebookPath);
+                _logger.LogWarning("コードブチE��が見つかりません: {Path}", _codebookPath);
                 return;
             }
 
@@ -62,7 +62,7 @@ namespace DekibaeCsvAnalyzer.Services
                     var uscore = s.IndexOf('_');
                     if (uscore <= 0 || uscore == s.Length - 1)
                     {
-                        _logger.LogWarning("不正なコードブック行({Line}): {Value}", lineNo, s);
+                        _logger.LogWarning("不正なコードブチE��衁E{Line}): {Value}", lineNo, s);
                         continue;
                     }
                     var codeStr = s.Substring(0, uscore);
@@ -78,7 +78,7 @@ namespace DekibaeCsvAnalyzer.Services
                     _byKey[key] = model;
                 }
             }
-            _logger.LogInformation("コードブック読込: {Count}件", _byCode.Count);
+            _logger.LogInformation("コードブチE��読込: {Count}件", _byCode.Count);
         }
 
         public bool TryGetByCode(int code, out DefectCode? defect)
@@ -94,3 +94,4 @@ namespace DekibaeCsvAnalyzer.Services
         }
     }
 }
+

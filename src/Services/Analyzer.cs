@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -10,11 +10,11 @@ using DekibaeCsvAnalyzer.Domain;
 using DekibaeCsvAnalyzer.Models;
 
 /*
-  例外/ロギング/キャンセル方針
-  - 例外: 入出力(ディレクトリ作成/書込)や致命的エラーは上位へ再スロー。処理継続可能な個別レコード不整合はWARNログしてスキップ。
-  - ロギング: 入力件数、クラスタ/アラーム出力件数、生成ファイルパスをINFO; スキップやメモリ制限の影響をWARN。
-  - キャンセル: ストリーミングループ中にCancellationTokenを監視し即時中断。出力ストリームは finally でクローズ。
-  - メモリ: 近傍クラスタリングはグリッド+時間窓スライドでO(n)近似。古いアンカーを定期的に破棄。
+  萓句､・繝ｭ繧ｮ繝ｳ繧ｰ/繧ｭ繝｣繝ｳ繧ｻ繝ｫ譁ｹ驥・
+  - 萓句､・ 蜈･蜃ｺ蜉・繝・ぅ繝ｬ繧ｯ繝医Μ菴懈・/譖ｸ霎ｼ)繧・・蜻ｽ逧・お繝ｩ繝ｼ縺ｯ荳贋ｽ阪∈蜀阪せ繝ｭ繝ｼ縲ょ・逅・ｶ咏ｶ壼庄閭ｽ縺ｪ蛟句挨繝ｬ繧ｳ繝ｼ繝我ｸ肴紛蜷医・WARN繝ｭ繧ｰ縺励※繧ｹ繧ｭ繝・・縲・
+  - 繝ｭ繧ｮ繝ｳ繧ｰ: 蜈･蜉帑ｻｶ謨ｰ縲√け繝ｩ繧ｹ繧ｿ/繧｢繝ｩ繝ｼ繝蜃ｺ蜉帑ｻｶ謨ｰ縲∫函謌舌ヵ繧｡繧､繝ｫ繝代せ繧棚NFO; 繧ｹ繧ｭ繝・・繧・Γ繝｢繝ｪ蛻ｶ髯舌・蠖ｱ髻ｿ繧淡ARN縲・
+  - 繧ｭ繝｣繝ｳ繧ｻ繝ｫ: 繧ｹ繝医Μ繝ｼ繝溘Φ繧ｰ繝ｫ繝ｼ繝嶺ｸｭ縺ｫCancellationToken繧堤屮隕悶＠蜊ｳ譎ゆｸｭ譁ｭ縲ょ・蜉帙せ繝医Μ繝ｼ繝縺ｯ finally 縺ｧ繧ｯ繝ｭ繝ｼ繧ｺ縲・
+  - 繝｡繝｢繝ｪ: 霑大ｍ繧ｯ繝ｩ繧ｹ繧ｿ繝ｪ繝ｳ繧ｰ縺ｯ繧ｰ繝ｪ繝・ラ+譎る俣遯薙せ繝ｩ繧､繝峨〒O(n)霑台ｼｼ縲ょ商縺・い繝ｳ繧ｫ繝ｼ繧貞ｮ壽悄逧・↓遐ｴ譽・・
 */
 
 namespace DekibaeCsvAnalyzer.Services
@@ -42,7 +42,7 @@ namespace DekibaeCsvAnalyzer.Services
             CancellationToken ct = default(CancellationToken))
         {
         conditions.Validate();
-        if (conditions.HasErrors) throw new InvalidOperationException("ConditionSet が不正です。");
+        if (conditions.HasErrors) throw new InvalidOperationException("ConditionSet is invalid.");
 
         var outputsDir = Path.Combine(outputRoot, "exports");
         Directory.CreateDirectory(outputsDir);
@@ -116,7 +116,7 @@ namespace DekibaeCsvAnalyzer.Services
                         Csv(r.CodeRaw), clusterId.ToString(CultureInfo.InvariantCulture)
                     }));
 
-                    var ws = (r.Timestamp.Ticks / alarmWinTicks) * alarmWinTicks; // バケット開始Ticks
+                    var ws = (r.Timestamp.Ticks / alarmWinTicks) * alarmWinTicks; // 繝舌こ繝・ヨ髢句ｧ亀icks
                     int ac;
                     alarmCounts[ws] = alarmCounts.TryGetValue(ws, out ac) ? ac + 1 : 1;
 
@@ -130,7 +130,7 @@ namespace DekibaeCsvAnalyzer.Services
             clusterer.Dispose();
         }
 
-        // Aggregate 出力
+        // Aggregate 蜃ｺ蜉・
         if (aggWriter == null || almWriter == null || cluWriter == null)
         {
             await EnsureWritersAsync(null);
@@ -149,27 +149,26 @@ namespace DekibaeCsvAnalyzer.Services
             }
         }
 
-        // Alarm 出力
+        // Alarm 蜃ｺ蜉・
         await alw.WriteLineAsync("WindowStart,WindowEnd,Count,Threshold,Alarm");
         foreach (var kv in alarmCounts)
         {
             var start = new DateTime(kv.Key, DateTimeKind.Local);
             var end = start.Add(conditions.AlarmWindow);
             var count = kv.Value;
-            var alarm = count > conditions.AlarmThreshold ? 1 : 0; // “超” → strictly greater
-            // 閾値以上(>=)に統一（コメントと実装の不一致を是正）
-            alarm = (count >= conditions.AlarmThreshold) ? 1 : 0;
+            var alarm = count > conditions.AlarmThreshold ? 1 : 0; // 窶懆ｶ・・竊・strictly greater
+            // 髢ｾ蛟､莉･荳・>=)縺ｫ邨ｱ荳・医さ繝｡繝ｳ繝医→螳溯｣・・荳堺ｸ閾ｴ繧呈弍豁｣・・            alarm = (count >= conditions.AlarmThreshold) ? 1 : 0;
             await alw.WriteLineAsync(string.Join(',',
                 start.ToString("yyyy-MM-dd HH:mm:ss"), end.ToString("yyyy-MM-dd HH:mm:ss"),
                 count.ToString(CultureInfo.InvariantCulture), conditions.AlarmThreshold.ToString(CultureInfo.InvariantCulture), alarm.ToString(CultureInfo.InvariantCulture)));
         }
 
-        _logger.LogInformation("集計:{Agg} クラスタ:{Clu} アラーム:{Alm}", aggregatePath, clusterPath, alarmPath);
+        _logger.LogInformation("髮・ｨ・{Agg} 繧ｯ繝ｩ繧ｹ繧ｿ:{Clu} 繧｢繝ｩ繝ｼ繝:{Alm}", aggregatePath, clusterPath, alarmPath);
         await agw.DisposeAsync();
         await (cluWriter!).DisposeAsync();
         await alw.DisposeAsync();
 
-        _logger.LogInformation("出力:集計:{Agg} クラスタ:{Clu} アラーム:{Alm}", aggregatePath, clusterPath, alarmPath);
+        _logger.LogInformation("蜃ｺ蜉・髮・ｨ・{Agg} 繧ｯ繝ｩ繧ｹ繧ｿ:{Clu} 繧｢繝ｩ繝ｼ繝:{Alm}", aggregatePath, clusterPath, alarmPath);
         return new AnalyzerResult(aggregatePath, clusterPath, alarmPath);
     }
 
@@ -274,7 +273,7 @@ namespace DekibaeCsvAnalyzer.Services
                     if (now - list[i].Last > _tw) { list.RemoveAt(i); removed++; }
                 }
             }
-            if (removed > 0) _logger.LogDebug("古いクラスタ破棄: {Count}", removed);
+            if (removed > 0) _logger.LogDebug("蜿､縺・け繝ｩ繧ｹ繧ｿ遐ｴ譽・ {Count}", removed);
         }
 
         public void Dispose()
@@ -284,3 +283,4 @@ namespace DekibaeCsvAnalyzer.Services
     }
     }
 }
+

@@ -1,4 +1,4 @@
-<Window
+﻿<Window
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     x:Class="DekibaeCsvAnalyzer.Views.MainWindow"
@@ -18,21 +18,19 @@
       <StackPanel Margin="12" Spacing="12">
         <!-- Paths -->
         <GroupBox Header="パス">
-          <StackPanel Spacing="8">
-            <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto">
-              <TextBlock Text="入力ルート:" Margin="0,0,8,0" VerticalAlignment="Center"/>
-              <TextBox Grid.Column="1" Text="{Binding InputRoot}" MinWidth="600"/>
-              <Button Grid.Column="2" x:Name="BrowseInputButton" Content="参照..." Margin="8,0,0,0"/>
+          <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto">
+            <TextBlock Text="入力ルート:" Margin="0,0,8,0" VerticalAlignment="Center"/>
+            <TextBox Grid.Column="1" Text="{Binding InputRoot}" MinWidth="600"/>
+            <Button Grid.Column="2" x:Name="BrowseInputButton" Content="参照..." Margin="8,0,0,0"/>
 
-              <TextBlock Grid.Row="1" Text="出力ルート:" Margin="0,8,8,0" VerticalAlignment="Center"/>
-              <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding OutputRoot}" MinWidth="600"/>
-              <Button Grid.Row="1" Grid.Column="2" x:Name="OpenOutputButton" Content="開く" Margin="8,8,0,0"/>
+            <TextBlock Grid.Row="1" Text="出力ルート:" Margin="0,8,8,0" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding OutputRoot}" MinWidth="600"/>
+            <Button Grid.Row="1" Grid.Column="2" x:Name="OpenOutputButton" Content="開く" Margin="8,8,0,0"/>
 
-              <TextBlock Grid.Row="2" Text="コードブック:" Margin="0,8,8,0" VerticalAlignment="Center"/>
-              <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding CodebookPath}" MinWidth="600"/>
-              <Button Grid.Row="2" Grid.Column="2" x:Name="BrowseCodebookButton" Content="参照..." Margin="8,8,0,0"/>
-            </Grid>
-          </StackPanel>
+            <TextBlock Grid.Row="2" Text="コードブック:" Margin="0,8,8,0" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding CodebookPath}" MinWidth="600"/>
+            <Button Grid.Row="2" Grid.Column="2" x:Name="BrowseCodebookButton" Content="参照..." Margin="8,8,0,0"/>
+          </Grid>
         </GroupBox>
 
         <!-- Filters -->
@@ -89,7 +87,9 @@
                 <DataTemplate>
                   <StackPanel Orientation="Horizontal" Spacing="8">
                     <TextBlock Text="{Binding}" Width="700" TextTrimming="CharacterEllipsis"/>
-                    <Button Content="開く" Tag="{Binding}"/>
+                    <Button Content="開く"
+                            Command="{Binding DataContext.OpenPathCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                            CommandParameter="{Binding .}"/>
                   </StackPanel>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
