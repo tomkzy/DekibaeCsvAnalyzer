@@ -15,7 +15,7 @@ namespace DekibaeCsvAnalyzer.Services
 {
     public interface ICsvLoader
     {
-        IAsyncEnumerable<InspectionRecord> LoadAsync(string path, CancellationToken ct = default(CancellationToken));
+        IAsyncEnumerable<InspectionRecord> LoadAsync(string path, CancellationToken ct = default);
     }
 
     public sealed class CsvLoader : ICsvLoader
@@ -23,7 +23,7 @@ namespace DekibaeCsvAnalyzer.Services
         private readonly ILogger<CsvLoader> _logger;
         public CsvLoader(ILogger<CsvLoader> logger) { _logger = logger; }
 
-        public async IAsyncEnumerable<InspectionRecord> LoadAsync(string path, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken ct = default(CancellationToken))
+        public async IAsyncEnumerable<InspectionRecord> LoadAsync(string path, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken ct = default)
         {
             _logger.LogInformation("CSV読込開始: {Path}", path);
             if (!File.Exists(path)) yield break;
@@ -54,7 +54,7 @@ namespace DekibaeCsvAnalyzer.Services
                     TrimOptions = TrimOptions.Trim,
                 };
 
-                // ヘッダーの余白や前置行への対応（Trim）
+                // ヘッダーの余白や空置行への対応（Trim）
                 config.PrepareHeaderForMatch = args => args.Header == null ? null : args.Header.Trim();
 
                 // ゴミ行が存在する場合はヘッダー行までスキップ
@@ -206,15 +206,15 @@ namespace DekibaeCsvAnalyzer.Services
             // フォーマット:
             // 1: IC
             // 2: LotNo(8桁)
-            // 3: SheetNo(1-2桁)
+            // 3: SheetNo(1-2桁) ※未使用
             // 4: yyyyMMdd-HHmmss
             // 5: EquipmentCode (例: NG1ISL001)
             // 6: 台帳No (例: 9123-321)
-            // 7: 補材No (例: H-2) — 未使用
+            // 7: 補材No (例: H-2)  ※未使用
             // 8: 空行
-            // 9: 面情報 (FT/BK)
+            // 9: 面種別 (FT/BK)
             // 10: 検出数
-            // 11以降: 欠陥行: CodeRaw,X,Y,Area,R,G,B,Hue,Luminance,Saturation,circularity,convexity,rectangularity,Sobel値,LongSide,ShortSide,Phi,ピース間同一連続,シート間同一数
+            // 11以降: 欠陥行 CodeRaw,X,Y,Area,R,G,B,Hue,Luminance,Saturation,circularity,convexity,rectangularity,Sobel値,LongSide,ShortSide,Phi,ピース間同一,シート間同一
             // 最終行に PrevData,... が来る
 
             string ReadFirstField(string? line)
@@ -224,7 +224,7 @@ namespace DekibaeCsvAnalyzer.Services
                 return (i >= 0 ? line.Substring(0, i) : line).Trim();
             }
 
-            // 必須メタ情報の取得
+            // 先頭メタ情報の取得
             var line1 = await reader.ReadLineAsync(); // IC
             var lotLine = await reader.ReadLineAsync();
             var sheetLine = await reader.ReadLineAsync();
@@ -248,7 +248,7 @@ namespace DekibaeCsvAnalyzer.Services
                 DateTime.TryParse(dtToken, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out ts);
             }
 
-            // 欠陥行を読み出す
+            // 欠陥行を読み出し
             while (true)
             {
                 ct.ThrowIfCancellationRequested();
@@ -269,7 +269,7 @@ namespace DekibaeCsvAnalyzer.Services
                 double px = 0, py = 0;
                 if (!double.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out px)) px = 0;
                 if (!double.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out py)) py = 0;
-                // 以降の指標を個別に取得（2~17列目をすべて保持）
+                // 以降の値を個別に取得（存在しない場合は 0）
                 double area = GetD(parts, 3);
                 int r = (int)Math.Round(GetD(parts, 4));
                 int g = (int)Math.Round(GetD(parts, 5));
@@ -321,7 +321,8 @@ namespace DekibaeCsvAnalyzer.Services
         private static double GetD(string[] parts, int idx)
         {
             if (idx < 0 || idx >= parts.Length) return 0;
-            double v; return double.TryParse(parts[idx], NumberStyles.Float, CultureInfo.InvariantCulture, out v) ? v : 0;
+            return double.TryParse(parts[idx], NumberStyles.Float, CultureInfo.InvariantCulture, out var v) ? v : 0;
         }
     }
 }
+

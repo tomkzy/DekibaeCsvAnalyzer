@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 
 /*
-  例外/ロギング/キャンセル方針
-  - Domainルールの検証クラス。例外は使わず INotifyDataErrorInfo によるバリデーションで表現。
+  ドメイン検証クラス
+  - 例外は使わず INotifyDataErrorInfo によるバリデーションで表現。
   - ロギング/キャンセルは行わない（UI/アプリ層で必要なら監視）。
 */
 
@@ -16,7 +16,7 @@ namespace DekibaeCsvAnalyzer.Domain
         public string IC { get; set; } = string.Empty;
         public string LotNo { get; set; } = string.Empty;
         public string EquipmentCode { get; set; } = string.Empty;
-        public string CodeFilter { get; set; } = string.Empty; // 正規化済KeyやCodeRaw（部分一致可）
+        public string CodeFilter { get; set; } = string.Empty; // 正規化キーや CodeRaw の部分一致可
         public int? SeverityMin { get; set; }
         public DateTime? From { get; set; }
         public DateTime? To { get; set; }
@@ -47,8 +47,7 @@ namespace DekibaeCsvAnalyzer.Domain
 
         private void AddError(string property, string message)
         {
-            List<string> list;
-            if (!_errors.TryGetValue(property, out list)) _errors[property] = list = new List<string>();
+            if (!_errors.TryGetValue(property, out var list)) _errors[property] = list = new List<string>();
             list.Add(message);
         }
         private void RaiseAll()
@@ -60,9 +59,9 @@ namespace DekibaeCsvAnalyzer.Domain
         }
         public IEnumerable GetErrors(string? propertyName)
         {
-            if (propertyName == null) return new string[0];
-            List<string> list;
-            return _errors.TryGetValue(propertyName, out list) ? list : new string[0];
+            if (propertyName == null) return Array.Empty<string>();
+            return _errors.TryGetValue(propertyName, out var list) ? list : Array.Empty<string>();
         }
     }
 }
+

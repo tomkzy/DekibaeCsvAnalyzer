@@ -1,7 +1,10 @@
-﻿<Window
+<Window
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:DekibaeCsvAnalyzer.ViewModels"
     x:Class="DekibaeCsvAnalyzer.Views.MainWindow"
+    x:DataType="vm:MainWindowViewModel"
+    x:CompileBindings="False"
     Width="1000" Height="700"
     Title="Dekibae CSV Analyzer">
   <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="*">
@@ -9,68 +12,65 @@
     <Border Background="Transparent" Padding="12">
       <StackPanel Orientation="Vertical" Spacing="4">
         <TextBlock Text="Dekibae CSV Analyzer" FontSize="20"/>
-        <TextBlock Text="入力フォルダ選択 → 集計 → 出力/ログを開く" Opacity="0.7"/>
+        <TextBlock Text="入力フォルダ検索・解析・出力/ログ確認" Opacity="0.7"/>
       </StackPanel>
     </Border>
 
     <!-- Body -->
     <ScrollViewer Grid.Row="1">
       <StackPanel Margin="12" Spacing="12">
-        <!-- Paths -->
-        <GroupBox Header="パス">
-          <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto">
-            <TextBlock Text="入力ルート:" Margin="0,0,8,0" VerticalAlignment="Center"/>
-            <TextBox Grid.Column="1" Text="{Binding InputRoot}" MinWidth="600"/>
-            <Button Grid.Column="2" x:Name="BrowseInputButton" Content="参照..." Margin="8,0,0,0"/>
+        <!-- Paths (GroupBox を使わず簡易配置) -->
+        <TextBlock Text="パス" FontWeight="Bold"/>
+        <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto">
+          <TextBlock Text="入力ルート:" Margin="0,0,8,0" VerticalAlignment="Center"/>
+          <TextBox Grid.Column="1" Text="{Binding InputRoot}" MinWidth="600"/>
+          <Button Grid.Column="2" x:Name="BrowseInputButton" Content="参照..." Margin="8,0,0,0"/>
 
-            <TextBlock Grid.Row="1" Text="出力ルート:" Margin="0,8,8,0" VerticalAlignment="Center"/>
-            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding OutputRoot}" MinWidth="600"/>
-            <Button Grid.Row="1" Grid.Column="2" x:Name="OpenOutputButton" Content="開く" Margin="8,8,0,0"/>
+          <TextBlock Grid.Row="1" Text="出力ルート:" Margin="0,8,8,0" VerticalAlignment="Center"/>
+          <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding OutputRoot}" MinWidth="600"/>
+          <Button Grid.Row="1" Grid.Column="2" x:Name="OpenOutputButton" Content="開く" Margin="8,8,0,0"/>
 
-            <TextBlock Grid.Row="2" Text="コードブック:" Margin="0,8,8,0" VerticalAlignment="Center"/>
-            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding CodebookPath}" MinWidth="600"/>
-            <Button Grid.Row="2" Grid.Column="2" x:Name="BrowseCodebookButton" Content="参照..." Margin="8,8,0,0"/>
-          </Grid>
-        </GroupBox>
+          <TextBlock Grid.Row="2" Text="コードブック:" Margin="0,8,8,0" VerticalAlignment="Center"/>
+          <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding CodebookPath}" MinWidth="600"/>
+          <Button Grid.Row="2" Grid.Column="2" x:Name="BrowseCodebookButton" Content="参照..." Margin="8,8,0,0"/>
+        </Grid>
 
-        <!-- Filters -->
-        <GroupBox Header="絞り込み">
-          <Grid ColumnDefinitions="Auto,*,Auto,*,Auto,*" RowDefinitions="Auto,Auto">
-            <TextBlock Text="IC:" Margin="0,0,8,0" VerticalAlignment="Center"/>
-            <TextBox Grid.Column="1" Text="{Binding IC}"/>
-            <TextBlock Grid.Column="2" Text="LotNo:" Margin="16,0,8,0" VerticalAlignment="Center"/>
-            <TextBox Grid.Column="3" Text="{Binding LotNo}"/>
-            <TextBlock Grid.Column="4" Text="日付:" Margin="16,0,8,0" VerticalAlignment="Center"/>
-            <DatePicker Grid.Column="5" SelectedDate="{Binding Date}"/>
+        <!-- Filters (簡易配置) -->
+        <TextBlock Text="フィルター" FontWeight="Bold"/>
+        <Grid ColumnDefinitions="Auto,*,Auto,*,Auto,*" RowDefinitions="Auto,Auto">
+          <TextBlock Text="IC:" Margin="0,0,8,0" VerticalAlignment="Center"/>
+          <TextBox Grid.Column="1" Text="{Binding IC}"/>
+          <TextBlock Grid.Column="2" Text="LotNo:" Margin="16,0,8,0" VerticalAlignment="Center"/>
+          <TextBox Grid.Column="3" Text="{Binding LotNo}"/>
+          <TextBlock Grid.Column="4" Text="日付:" Margin="16,0,8,0" VerticalAlignment="Center"/>
+          <DatePicker Grid.Column="5" SelectedDate="{Binding Date}"/>
 
-            <TextBlock Grid.Row="1" Text="範囲指定:" Margin="0,8,8,0" VerticalAlignment="Center"/>
-            <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding UseDateRange}" Content="使用"/>
-            <TextBlock Grid.Row="1" Grid.Column="2" Text="From:" Margin="16,8,8,0" VerticalAlignment="Center"/>
-            <DatePicker Grid.Row="1" Grid.Column="3" SelectedDate="{Binding DateFrom}"/>
-            <TextBlock Grid.Row="1" Grid.Column="4" Text="To:" Margin="16,8,8,0" VerticalAlignment="Center"/>
-            <DatePicker Grid.Row="1" Grid.Column="5" SelectedDate="{Binding DateTo}"/>
-          </Grid>
-        </GroupBox>
+          <TextBlock Grid.Row="1" Text="範囲指定:" Margin="0,8,8,0" VerticalAlignment="Center"/>
+          <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding UseDateRange}" Content="使用"/>
+          <TextBlock Grid.Row="1" Grid.Column="2" Text="From:" Margin="16,8,8,0" VerticalAlignment="Center"/>
+          <DatePicker Grid.Row="1" Grid.Column="3" SelectedDate="{Binding DateFrom}"/>
+          <TextBlock Grid.Row="1" Grid.Column="4" Text="To:" Margin="16,8,8,0" VerticalAlignment="Center"/>
+          <DatePicker Grid.Row="1" Grid.Column="5" SelectedDate="{Binding DateTo}"/>
+        </Grid>
 
-        <!-- Parameters -->
-        <GroupBox Header="解析パラメータ">
-          <Grid ColumnDefinitions="Auto,*,Auto,*,Auto,*" RowDefinitions="Auto">
-            <TextBlock Text="クラスタ半径 r:" VerticalAlignment="Center"/>
-            <TextBox Grid.Column="1" Text="{Binding ClusterRadius}"/>
-            <TextBlock Grid.Column="2" Text="時間窓 t[sec]:" Margin="16,0,0,0" VerticalAlignment="Center"/>
-            <TextBox Grid.Column="3" Text="{Binding ClusterTimeWindowSec}"/>
-            <TextBlock Grid.Column="4" Text="アラーム窓 Δt[sec]:" Margin="16,0,0,0" VerticalAlignment="Center"/>
-            <TextBox Grid.Column="5" Text="{Binding AlarmWindowSec}"/>
-          </Grid>
-          <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto" Margin="0,8,0,0">
-            <TextBlock Text="アラーム閾値:" VerticalAlignment="Center"/>
-            <TextBox Grid.Column="1" Text="{Binding AlarmThreshold}"/>
-          </Grid>
-        </GroupBox>
+        <!-- Parameters (簡易配置) -->
+        <TextBlock Text="解析パラメータ" FontWeight="Bold"/>
+        <Grid ColumnDefinitions="Auto,*,Auto,*,Auto,*" RowDefinitions="Auto">
+          <TextBlock Text="クラスタ半径 r:" VerticalAlignment="Center"/>
+          <TextBox Grid.Column="1" Text="{Binding ClusterRadius}"/>
+          <TextBlock Grid.Column="2" Text="時間窓 t[sec]:" Margin="16,0,0,0" VerticalAlignment="Center"/>
+          <TextBox Grid.Column="3" Text="{Binding ClusterTimeWindowSec}"/>
+          <TextBlock Grid.Column="4" Text="アラーム Δt[sec]:" Margin="16,0,0,0" VerticalAlignment="Center"/>
+          <TextBox Grid.Column="5" Text="{Binding AlarmWindowSec}"/>
+        </Grid>
+        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto" Margin="0,8,0,0">
+          <TextBlock Text="アラーム閾値:" VerticalAlignment="Center"/>
+          <TextBox Grid.Column="1" Text="{Binding AlarmThreshold}"/>
+        </Grid>
 
         <!-- Actions & Progress -->
         <StackPanel Orientation="Horizontal" Spacing="8">
-          <Button Content="集計開始" Command="{Binding RunCommand}" IsEnabled="{Binding IsNotRunning}"/>
+          <Button Content="実行" Command="{Binding RunCommand}" IsEnabled="{Binding IsNotRunning}"/>
           <Button Content="停止" Command="{Binding CancelCommand}" IsEnabled="{Binding IsRunning}"/>
           <Button Content="ログを開く" x:Name="OpenLogsButton"/>
           <Button Content="設定保存" Command="{Binding SaveSettingsCommand}"/>
@@ -79,30 +79,20 @@
         <ProgressBar IsIndeterminate="{Binding IsRunning}" Height="6"/>
         <TextBlock Text="{Binding StatusText}"/>
 
-        <!-- Results -->
-        <GroupBox Header="出力">
-          <StackPanel Spacing="4">
-            <ItemsControl Items="{Binding RecentOutputs}">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                  <StackPanel Orientation="Horizontal" Spacing="8">
-                    <TextBlock Text="{Binding}" Width="700" TextTrimming="CharacterEllipsis"/>
-                    <Button Content="開く"
-                            Command="{Binding DataContext.OpenPathCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                            CommandParameter="{Binding .}"/>
-                  </StackPanel>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </StackPanel>
-        </GroupBox>
-
-        <!-- Trend placeholder (将来: グラフ描画領域) -->
-        <GroupBox Header="トレンド (検出数/同一数)" IsEnabled="False">
-          <Border Height="180" Background="#11111111">
-            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0.7" Text="将来的にグラフを表示"/>
-          </Border>
-        </GroupBox>
+        <!-- Results (簡易配置) -->
+        <TextBlock Text="結果" FontWeight="Bold"/>
+        <ItemsControl ItemsSource="{Binding RecentOutputs}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="{Binding}" Width="700" TextTrimming="CharacterEllipsis"/>
+                <Button Content="開く"
+                        Command="{Binding DataContext.OpenPathCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                        CommandParameter="{Binding .}"/>
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
       </StackPanel>
     </ScrollViewer>
 
