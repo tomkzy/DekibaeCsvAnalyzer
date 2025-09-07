@@ -183,8 +183,8 @@ internal class Program
                     // 数字2桁 → コード
                     if (int.TryParse(s, out var num)) { outList.Add(num.ToString("00") + "_" + s); continue; }
                     // Key から検索
-                    DekibaeCsvAnalyzer.Models.DefectCode d;
-                    if (repo.TryGetByKey(s, out d)) { outList.Add(d.ToString()); }
+                    DekibaeCsvAnalyzer.Models.DefectCode? d;
+                    if (repo.TryGetByKey(s, out d) && d != null) { outList.Add(d.ToString()); }
                     else { outList.Add(s); }
                 }
                 logger.LogInformation("正規化済みコード: {Codes}", string.Join(", ", outList));

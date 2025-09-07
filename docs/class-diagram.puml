@@ -1,0 +1,83 @@
+@startuml class-diagram
+title DekibaeCsvAnalyzer - Class Diagram
+
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+
+package "DekibaeCsvAnalyzer" {
+  package "Views" {
+    class MainWindow
+  }
+
+  package "Logging" {
+    class Logging <<static>>
+    class FileLoggerProvider
+    class FileLogger
+    Logging -> FileLoggerProvider : creates
+    FileLoggerProvider -> FileLogger : creates
+  }
+
+  package "Domain" {
+    interface INotifyDataErrorInfo <<external>>
+    class ConditionSet
+    ConditionSet ..|> INotifyDataErrorInfo
+  }
+
+  package "Models" {
+    class InspectionRecord
+    class InspectionRecordMap
+    class DefectCode
+  }
+
+  package "Services" {
+    interface ICsvLoader {
+      +LoadAsync(path, ct) : IAsyncEnumerable<InspectionRecord>
+    }
+    class CsvLoader
+    class Analyzer
+    class AnalyzerResult
+    class PathScanner
+    class TrendAggregator
+    class DefectCodeRepository
+
+    ICsvLoader <|.. CsvLoader
+    CsvLoader ..> InspectionRecord
+    CsvLoader ..> InspectionRecordMap
+    Analyzer ..> InspectionRecord
+    Analyzer ..> ConditionSet
+    Analyzer --> AnalyzerResult : returns
+    TrendAggregator ..> InspectionRecord
+    TrendAggregator ..> ConditionSet
+    DefectCodeRepository ..> DefectCode
+  }
+
+  package "App" {
+    class App
+    class Program
+    Program ..> Logging : use logger factory
+    Program ..> App
+    App ..> MainWindow : creates
+  }
+}
+
+' External references (kept minimal)
+class ClassMap <<external>>
+InspectionRecordMap ..|> ClassMap
+
+class AvaloniaApplication <<external>>
+class AvaloniaWindow <<external>>
+App ..|> AvaloniaApplication
+MainWindow ..|> AvaloniaWindow
+
+note right of InspectionRecordMap
+  Maps CSV columns to InspectionRecord
+  via CsvHelper ClassMap
+end note
+
+note bottom of Analyzer
+  Performs aggregation, clustering, and alarm rate
+  calculations over InspectionRecord sequences
+end note
+
+@enduml
+

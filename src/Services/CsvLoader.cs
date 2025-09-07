@@ -75,7 +75,7 @@ namespace DekibaeCsvAnalyzer.Services
                     while (await csv.ReadAsync())
                     {
                         ct.ThrowIfCancellationRequested();
-                        InspectionRecord rec = null;
+                        InspectionRecord? rec = null;
                         var ok = false;
                         try
                         {

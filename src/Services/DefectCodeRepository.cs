@@ -81,13 +81,13 @@ namespace DekibaeCsvAnalyzer.Services
             _logger.LogInformation("コードブック読込: {Count}件", _byCode.Count);
         }
 
-        public bool TryGetByCode(int code, out DefectCode defect)
+        public bool TryGetByCode(int code, out DefectCode? defect)
         {
             EnsureLoaded();
             return _byCode.TryGetValue(code, out defect);
         }
 
-        public bool TryGetByKey(string key, out DefectCode defect)
+        public bool TryGetByKey(string key, out DefectCode? defect)
         {
             EnsureLoaded();
             return _byKey.TryGetValue(key, out defect);

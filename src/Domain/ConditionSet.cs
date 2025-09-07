@@ -13,10 +13,10 @@ namespace DekibaeCsvAnalyzer.Domain
 {
     public sealed class ConditionSet : INotifyDataErrorInfo
     {
-        public string IC { get; set; }
-        public string LotNo { get; set; }
-        public string EquipmentCode { get; set; }
-        public string CodeFilter { get; set; } // 正規化済KeyやCodeRaw（部分一致可）
+        public string IC { get; set; } = string.Empty;
+        public string LotNo { get; set; } = string.Empty;
+        public string EquipmentCode { get; set; } = string.Empty;
+        public string CodeFilter { get; set; } = string.Empty; // 正規化済KeyやCodeRaw（部分一致可）
         public int? SeverityMin { get; set; }
         public DateTime? From { get; set; }
         public DateTime? To { get; set; }
@@ -27,8 +27,8 @@ namespace DekibaeCsvAnalyzer.Domain
         public int AlarmThreshold { get; set; } = 10;
 
         private readonly Dictionary<string, List<string>> _errors = new Dictionary<string, List<string>>();
-        public bool HasErrors { get { return _errors.Count > 0; } }
-        public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
+        public bool HasErrors => _errors.Count > 0;
+        public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
 
         public void Validate()
         {
@@ -53,11 +53,12 @@ namespace DekibaeCsvAnalyzer.Domain
         }
         private void RaiseAll()
         {
-            if (ErrorsChanged == null) return;
+            var h = ErrorsChanged;
+            if (h == null) return;
             foreach (var key in _errors.Keys)
-                ErrorsChanged(this, new DataErrorsChangedEventArgs(key));
+                h(this, new DataErrorsChangedEventArgs(key));
         }
-        public IEnumerable GetErrors(string propertyName)
+        public IEnumerable GetErrors(string? propertyName)
         {
             if (propertyName == null) return new string[0];
             List<string> list;

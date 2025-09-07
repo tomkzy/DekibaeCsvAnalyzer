@@ -19,8 +19,8 @@ namespace DekibaeCsvAnalyzer.Services
 
         public IEnumerable<string> Enumerate(
             string inputRoot,
-            string ic = null,
-            string lotNo = null,
+            string? ic = null,
+            string? lotNo = null,
             DateTime? date = null,
             DateTime? dateFrom = null,
             DateTime? dateTo = null,

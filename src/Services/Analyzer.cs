@@ -97,6 +97,7 @@ namespace DekibaeCsvAnalyzer.Services
 
                     if (first == null) first = r;
                     await EnsureWritersAsync(first.EquipmentCode);
+                    var clw = cluWriter!;
 
                     total++;
                     var face = r.Face ?? string.Empty;
@@ -108,7 +109,7 @@ namespace DekibaeCsvAnalyzer.Services
                     faceTotals[face] = faceTotals.TryGetValue(face, out ft) ? ft + 1 : 1;
 
                     var clusterId = clusterer.AssignCluster(r);
-                    await cluWriter.WriteLineAsync(string.Join(',', new[]
+                    await clw.WriteLineAsync(string.Join(',', new[]
                     {
                         Csv(r.LotNo), r.Timestamp.ToString("yyyy-MM-dd HH:mm:ss"), Csv(r.EquipmentCode), Csv(r.LedgerNo), Csv(r.Face ?? string.Empty),
                         r.X.ToString(CultureInfo.InvariantCulture), r.Y.ToString(CultureInfo.InvariantCulture), r.Severity.ToString(CultureInfo.InvariantCulture),
@@ -130,11 +131,13 @@ namespace DekibaeCsvAnalyzer.Services
         }
 
         // Aggregate 出力
-        if (aggWriter == null)
+        if (aggWriter == null || almWriter == null || cluWriter == null)
         {
             await EnsureWritersAsync(null);
         }
-        await aggWriter.WriteLineAsync("Face,Code,Count,RatioInFace");
+        var agw = aggWriter!;
+        var alw = almWriter!;
+        await agw.WriteLineAsync("Face,Code,Count,RatioInFace");
         foreach (var faceEntry in byCode)
         {
             var face = faceEntry.Key ?? string.Empty;
@@ -142,27 +145,27 @@ namespace DekibaeCsvAnalyzer.Services
             foreach (var kv in faceEntry.Value.OrderByDescending(k => k.Value))
             {
                 var ratio = ft > 0 ? (double)kv.Value / ft : 0;
-                await aggWriter.WriteLineAsync(string.Join(',', Csv(face), Csv(kv.Key), kv.Value.ToString(CultureInfo.InvariantCulture), ratio.ToString("0.#####", CultureInfo.InvariantCulture)));
+                await agw.WriteLineAsync(string.Join(',', Csv(face), Csv(kv.Key), kv.Value.ToString(CultureInfo.InvariantCulture), ratio.ToString("0.#####", CultureInfo.InvariantCulture)));
             }
         }
 
         // Alarm 出力
-        await almWriter.WriteLineAsync("WindowStart,WindowEnd,Count,Threshold,Alarm");
+        await alw.WriteLineAsync("WindowStart,WindowEnd,Count,Threshold,Alarm");
         foreach (var kv in alarmCounts)
         {
             var start = new DateTime(kv.Key, DateTimeKind.Local);
             var end = start.Add(conditions.AlarmWindow);
             var count = kv.Value;
             var alarm = count > conditions.AlarmThreshold ? 1 : 0; // “超” → strictly greater
-            await almWriter.WriteLineAsync(string.Join(',',
+            await alw.WriteLineAsync(string.Join(',',
                 start.ToString("yyyy-MM-dd HH:mm:ss"), end.ToString("yyyy-MM-dd HH:mm:ss"),
                 count.ToString(CultureInfo.InvariantCulture), conditions.AlarmThreshold.ToString(CultureInfo.InvariantCulture), alarm.ToString(CultureInfo.InvariantCulture)));
         }
 
         _logger.LogInformation("集計:{Agg} クラスタ:{Clu} アラーム:{Alm}", aggregatePath, clusterPath, alarmPath);
-        await aggWriter.DisposeAsync();
-        await cluWriter.DisposeAsync();
-        await almWriter.DisposeAsync();
+        await agw.DisposeAsync();
+        await (cluWriter!).DisposeAsync();
+        await alw.DisposeAsync();
 
         _logger.LogInformation("出力:集計:{Agg} クラスタ:{Clu} アラーム:{Alm}", aggregatePath, clusterPath, alarmPath);
         return new AnalyzerResult(aggregatePath, clusterPath, alarmPath);
