@@ -36,7 +36,7 @@ namespace DekibaeCsvAnalyzer.Services
                     if (Directory.Exists(p)) yield return p;
                     yield break;
                 }
-                foreach (var d in SafeEnumerateDirectories(inputRoot)) yield return d;
+                foreach (var d in SafeEnumerateDirectoriesEager(inputRoot)) yield return d;
             }
 
             foreach (var icDir in IcDirs())
@@ -53,7 +53,7 @@ namespace DekibaeCsvAnalyzer.Services
                     }
                     var from = dateFrom ?? DateTime.MinValue;
                     var to = dateTo ?? DateTime.MaxValue;
-                    foreach (var d in SafeEnumerateDirectories(icDir))
+                    foreach (var d in SafeEnumerateDirectoriesEager(icDir))
                     {
                         var name = Path.GetFileName(d);
                         DateTime dt;
@@ -76,20 +76,57 @@ namespace DekibaeCsvAnalyzer.Services
                             if (Directory.Exists(p)) yield return p;
                             yield break;
                         }
-                        foreach (var d in SafeEnumerateDirectories(dateDir)) yield return d;
+                        foreach (var d in SafeEnumerateDirectoriesEager(dateDir)) yield return d;
                     }
 
                     foreach (var lotDir in LotDirs())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        foreach (var file in SafeEnumerateFiles(lotDir, "*.csv"))
+                        foreach (var file in SafeEnumerateFilesEager(lotDir, "*.csv"))
                         {
                             cancellationToken.ThrowIfCancellationRequested();
                             yield return file;
                         }
                     }
                 }
+            }
+        }
+
+        // Eager enumeration wrappers that catch per-iteration exceptions to avoid bubbling from lazy Enumerate* APIs
+        private IEnumerable<string> SafeEnumerateDirectoriesEager(string path)
+        {
+            try
+            {
+                // Eagerly materialize to capture any exceptions here
+                return System.Linq.Enumerable.ToArray(Directory.EnumerateDirectories(path));
+            }
+            catch (Exception ex)
+            {
+                if (ex is UnauthorizedAccessException || ex is IOException)
+                {
+                    _logger.LogWarning(ex, "ディレクトリ列挙に失敗: {Path}", path);
+                    return Array.Empty<string>();
+                }
+                throw;
+            }
+        }
+
+        private IEnumerable<string> SafeEnumerateFilesEager(string path, string pattern)
+        {
+            try
+            {
+                // Eagerly materialize to capture any exceptions here
+                return System.Linq.Enumerable.ToArray(Directory.EnumerateFiles(path, pattern, SearchOption.AllDirectories));
+            }
+            catch (Exception ex)
+            {
+                if (ex is UnauthorizedAccessException || ex is IOException)
+                {
+                    _logger.LogWarning(ex, "ファイル列挙に失敗: {Path}", path);
+                    return Array.Empty<string>();
+                }
+                throw;
             }
         }
 
