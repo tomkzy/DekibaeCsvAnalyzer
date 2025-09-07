@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.Extensions.Logging;
-using BizCsvAnalyzer.Models;
+using DekibaeCsvAnalyzer.Models;
 
-namespace BizCsvAnalyzer.Services
+namespace DekibaeCsvAnalyzer.Services
 {
     public interface ICsvLoader
     {

@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace BizCsvAnalyzer.Views;
+namespace DekibaeCsvAnalyzer.Views;
 
 public partial class MainWindow : Window
 {

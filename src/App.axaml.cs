@@ -1,9 +1,9 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using BizCsvAnalyzer.Views;
+using DekibaeCsvAnalyzer.Views;
 
-namespace BizCsvAnalyzer;
+namespace DekibaeCsvAnalyzer;
 
 public partial class App : Application
 {
@@ -22,4 +22,3 @@ public partial class App : Application
         base.OnFrameworkInitializationCompleted();
     }
 }
-

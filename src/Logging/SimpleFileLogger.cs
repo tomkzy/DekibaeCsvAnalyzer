@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
   - キャンセル: ロガー自体は非同期/キャンセル未対応。上位の処理キャンセルに影響しない。
 */
 
-namespace BizCsvAnalyzer.Logging
+namespace DekibaeCsvAnalyzer.Logging
 {
     public static class Logging
     {

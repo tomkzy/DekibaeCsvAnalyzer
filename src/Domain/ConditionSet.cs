@@ -9,7 +9,7 @@ using System.ComponentModel;
   - ロギング/キャンセルは行わない（UI/アプリ層で必要なら監視）。
 */
 
-namespace BizCsvAnalyzer.Domain
+namespace DekibaeCsvAnalyzer.Domain
 {
     public sealed class ConditionSet : INotifyDataErrorInfo
     {

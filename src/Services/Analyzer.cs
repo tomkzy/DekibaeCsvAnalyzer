@@ -6,8 +6,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using BizCsvAnalyzer.Domain;
-using BizCsvAnalyzer.Models;
+using DekibaeCsvAnalyzer.Domain;
+using DekibaeCsvAnalyzer.Models;
 
 /*
   例外/ロギング/キャンセル方針
@@ -17,7 +17,7 @@ using BizCsvAnalyzer.Models;
   - メモリ: 近傍クラスタリングはグリッド+時間窓スライドでO(n)近似。古いアンカーを定期的に破棄。
 */
 
-namespace BizCsvAnalyzer.Services
+namespace DekibaeCsvAnalyzer.Services
 {
     public sealed class Analyzer
     {

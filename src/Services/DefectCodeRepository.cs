@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using Microsoft.Extensions.Logging;
-using BizCsvAnalyzer.Models;
+using DekibaeCsvAnalyzer.Models;
 
 /*
   例外/ロギング/キャンセル方針
@@ -12,7 +12,7 @@ using BizCsvAnalyzer.Models;
   - ロードは遅延初期化し、スレッドセーフにキャッシュ。キャンセルは未対応（小規模I/O想定）。
 */
 
-namespace BizCsvAnalyzer.Services
+namespace DekibaeCsvAnalyzer.Services
 {
     public sealed class DefectCodeRepository
     {

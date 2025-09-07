@@ -11,7 +11,7 @@ using System.Globalization;
   - 変換失敗は CsvLoader 側でWARNログし、その行のみスキップ。
 */
 
-namespace BizCsvAnalyzer.Models
+namespace DekibaeCsvAnalyzer.Models
 {
     public sealed class InspectionRecord
     {

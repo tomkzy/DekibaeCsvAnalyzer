@@ -1,5 +1,5 @@
-DekibaeCsvAnalyzer (.NET 8 / Avalonia 11-ready core)
-===================================================
+BizCsvAnalyzer (.NET 8 / Avalonia 11-ready core)
+=================================================
 
 目的
 - Windows 10/11 向け業務アプリの CSV 分析基盤（PathScanner / CsvLoader / Analyzer ほか）
@@ -33,7 +33,7 @@ DekibaeCsvAnalyzer (.NET 8 / Avalonia 11-ready core)
   例: `"InputRoot": "/mnt/d/CIS/Results"`
 
 5) 実行（最小エントリ）
-   dotnet run --project src/DekibaeCsvAnalyzer.csproj
+   dotnet run --project src/BizCsvAnalyzer.csproj
 
 出力
 - `out/exports/Aggregate_*`, `Cluster_*`, `AlarmRate_*`

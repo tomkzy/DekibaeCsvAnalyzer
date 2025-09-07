@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using Xunit;
-using BizCsvAnalyzer.Services;
+using DekibaeCsvAnalyzer.Services;
 
 namespace BizCsvAnalyzer.Tests
 {

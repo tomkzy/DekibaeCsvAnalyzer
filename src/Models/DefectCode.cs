@@ -6,7 +6,7 @@ using System;
   - ロギング/キャンセルは使用しない。
 */
 
-namespace BizCsvAnalyzer.Models
+namespace DekibaeCsvAnalyzer.Models
 {
     public sealed class DefectCode
     {

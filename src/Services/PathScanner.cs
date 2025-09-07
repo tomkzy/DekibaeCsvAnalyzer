@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
   - キャンセル: 列挙ループ中に CancellationToken を監視して即時中断。
 */
 
-namespace BizCsvAnalyzer.Services
+namespace DekibaeCsvAnalyzer.Services
 {
     public sealed class PathScanner
     {

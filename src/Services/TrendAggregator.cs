@@ -6,11 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using BizCsvAnalyzer.Domain;
-using BizCsvAnalyzer.Models;
+using DekibaeCsvAnalyzer.Domain;
+using DekibaeCsvAnalyzer.Models;
 using Microsoft.Extensions.Logging;
 
-namespace BizCsvAnalyzer.Services
+namespace DekibaeCsvAnalyzer.Services
 {
     public sealed class TrendAggregator
     {
@@ -133,4 +133,3 @@ namespace BizCsvAnalyzer.Services
         }
     }
 }
-

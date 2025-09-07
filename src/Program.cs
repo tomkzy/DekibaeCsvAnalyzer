@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using Microsoft.Extensions.Logging;
-using BizCsvAnalyzer.Logging;
+using DekibaeCsvAnalyzer.Logging;
 using Avalonia;
 
 /*
@@ -11,17 +11,17 @@ using Avalonia;
   - キャンセル: 本体サービス（CsvLoader/Analyzer）に CancellationToken を伝播。
 */
 
-namespace BizCsvAnalyzer
+namespace DekibaeCsvAnalyzer
 {
     internal static class Program
     {
         public static int Main(string[] args)
         {
-            var pair = BizCsvAnalyzer.Logging.Logging.SimpleFileLoggerFactory(Path.Combine("out", "logs"));
+            var pair = DekibaeCsvAnalyzer.Logging.Logging.SimpleFileLoggerFactory(Path.Combine("out", "logs"));
             var loggerFactory = pair.Factory;
             var logPath = pair.LogPath;
             var logger = loggerFactory.CreateLogger("Bootstrap");
-            logger.LogInformation("BizCsvAnalyzer booted. Logs at {Path}", logPath);
+            logger.LogInformation("DekibaeCsvAnalyzer booted. Logs at {Path}", logPath);
             // WSL 環境では Wayland を優先（X11 依存不足の回避）。
             try
             {

@@ -5,9 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Xunit;
-using BizCsvAnalyzer.Domain;
-using BizCsvAnalyzer.Models;
-using BizCsvAnalyzer.Services;
+using DekibaeCsvAnalyzer.Domain;
+using DekibaeCsvAnalyzer.Models;
+using DekibaeCsvAnalyzer.Services;
 
 namespace BizCsvAnalyzer.Tests
 {

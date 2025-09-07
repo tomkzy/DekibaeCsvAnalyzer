@@ -7,9 +7,9 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using BizCsvAnalyzer.Domain;
-using BizCsvAnalyzer.Models;
-using BizCsvAnalyzer.Services;
+using DekibaeCsvAnalyzer.Domain;
+using DekibaeCsvAnalyzer.Models;
+using DekibaeCsvAnalyzer.Services;
 using Microsoft.Extensions.Logging;
 
 internal class Program
@@ -175,7 +175,7 @@ internal class Program
             if (!string.IsNullOrWhiteSpace(codebookPath))
             {
                 var resolved = ResolvePathRelativeToRepo(codebookPath);
-                var repo = new BizCsvAnalyzer.Services.DefectCodeRepository(new Microsoft.Extensions.Logging.LoggerFactory().CreateLogger<BizCsvAnalyzer.Services.DefectCodeRepository>(), resolved);
+                var repo = new DekibaeCsvAnalyzer.Services.DefectCodeRepository(new Microsoft.Extensions.Logging.LoggerFactory().CreateLogger<DekibaeCsvAnalyzer.Services.DefectCodeRepository>(), resolved);
                 var outList = new List<string>();
                 foreach (var s in list)
                 {
