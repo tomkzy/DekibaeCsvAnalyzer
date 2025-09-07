@@ -4,6 +4,8 @@ using System.IO;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using DekibaeCsvAnalyzer.ViewModels;
+using Avalonia.Layout;
+using Avalonia;
 
 namespace DekibaeCsvAnalyzer.Views;
 
@@ -11,17 +13,40 @@ public partial class MainWindow : Window
 {
     public MainWindow()
     {
-        AvaloniaXamlLoader.Load(this);
+        try
+        {
+            AvaloniaXamlLoader.Load(this);
+        }
+        catch
+        {
+            // Minimal fallback UI when XAML isn't available
+            var panel = new StackPanel { Spacing = 8, Margin = new Thickness(12) };
+            panel.Children.Add(new TextBlock { Text = "Dekibae CSV Analyzer", FontSize = 20 });
+            panel.Children.Add(new TextBlock { Text = "XAML ロードに失敗したため簡易UIで起動", Opacity = 0.7 });
+            Content = panel;
+        }
         this.DataContext = new MainWindowViewModel();
         WireUiHandlers();
     }
 
     private void WireUiHandlers()
     {
-        var browseInput = this.FindControl<Button>("BrowseInputButton");
-        var browseCodebook = this.FindControl<Button>("BrowseCodebookButton");
-        var openOutput = this.FindControl<Button>("OpenOutputButton");
-        var openLogs = this.FindControl<Button>("OpenLogsButton");
+        // If no namescope (fallback UI), skip wiring
+        if (NameScope.GetNameScope(this) is null)
+            return;
+        Button? browseInput = null, browseCodebook = null, openOutput = null, openLogs = null;
+        try
+        {
+            browseInput = this.FindControl<Button>("BrowseInputButton");
+            browseCodebook = this.FindControl<Button>("BrowseCodebookButton");
+            openOutput = this.FindControl<Button>("OpenOutputButton");
+            openLogs = this.FindControl<Button>("OpenLogsButton");
+        }
+        catch
+        {
+            // Names not found (fallback UI). Skip wiring.
+            return;
+        }
 
         if (browseInput != null) browseInput.Click += async (_, __) =>
         {
