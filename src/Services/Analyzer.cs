@@ -51,16 +51,32 @@ namespace DekibaeCsvAnalyzer.Services
 
             string icLabel = string.IsNullOrWhiteSpace(conditions.IC) ? "IC" : conditions.IC;
             string lotLabel = string.IsNullOrWhiteSpace(conditions.LotNo) ? "ALL" : conditions.LotNo;
+            // 出力ファイル名に含める日付レンジのラベルを決定する。
+            // ポリシー:
+            // - From/To が両方未指定: "ALL"
+            // - From のみ指定: "<From>-99991231" （終端オープンを明示）
+            // - To のみ指定  : "00010101-<To>" （始端オープンを明示、以前の表記と互換）
+            // - From/To 両方指定: "<From>-<To>"
             string dateLabel;
-            if (conditions.From.HasValue || conditions.To.HasValue)
+            if (!conditions.From.HasValue && !conditions.To.HasValue)
             {
-                var fromLabel = (conditions.From ?? conditions.To ?? DateTime.MinValue).ToString("yyyyMMdd", CultureInfo.InvariantCulture);
-                var toLabel = (conditions.To ?? conditions.From ?? DateTime.MinValue).ToString("yyyyMMdd", CultureInfo.InvariantCulture);
-                dateLabel = fromLabel + "-" + toLabel;
+                dateLabel = "ALL";
+            }
+            else if (conditions.From.HasValue && !conditions.To.HasValue)
+            {
+                var fromLabel = conditions.From.Value.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+                dateLabel = fromLabel + "-99991231";
+            }
+            else if (!conditions.From.HasValue && conditions.To.HasValue)
+            {
+                var toLabel = conditions.To.Value.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+                dateLabel = "00010101-" + toLabel;
             }
             else
             {
-                dateLabel = "ALL";
+                var fromLabel = conditions.From!.Value.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+                var toLabel = conditions.To!.Value.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+                dateLabel = fromLabel + "-" + toLabel;
             }
             var tsStamp = DateTime.Now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture);
 

@@ -83,10 +83,11 @@ namespace DekibaeCsvAnalyzer.Services
 
         private static string RangeLabel(DateTime? from, DateTime? to)
         {
+            // ファイル名のレンジ表記を Analyzer と揃える
             if (!from.HasValue && !to.HasValue) return "ALL";
-            var f = (from ?? to ?? DateTime.MinValue).ToString("yyyyMMdd", CultureInfo.InvariantCulture);
-            var t = (to ?? from ?? DateTime.MinValue).ToString("yyyyMMdd", CultureInfo.InvariantCulture);
-            return f + "-" + t;
+            if (from.HasValue && !to.HasValue) return from.Value.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + "-99991231";
+            if (!from.HasValue && to.HasValue) return "00010101-" + to.Value.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+            return from!.Value.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + "-" + to!.Value.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
         }
 
         private static bool Match(InspectionRecord r, ConditionSet c)
