@@ -83,7 +83,8 @@ namespace DekibaeCsvAnalyzer.Services
 
         private static string RangeLabel(DateTime? from, DateTime? to)
         {
-            var f = (from ?? DateTime.MinValue).ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+            if (!from.HasValue && !to.HasValue) return "ALL";
+            var f = (from ?? to ?? DateTime.MinValue).ToString("yyyyMMdd", CultureInfo.InvariantCulture);
             var t = (to ?? from ?? DateTime.MinValue).ToString("yyyyMMdd", CultureInfo.InvariantCulture);
             return f + "-" + t;
         }
