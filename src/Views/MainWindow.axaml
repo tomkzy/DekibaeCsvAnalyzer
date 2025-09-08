@@ -12,81 +12,81 @@
     <Border Background="Transparent" Padding="12">
       <StackPanel Orientation="Vertical" Spacing="4">
         <TextBlock Text="Dekibae CSV Analyzer" FontSize="20"/>
-        <TextBlock Text="入力フォルダ検索・解析・出力/ログ確認" Opacity="0.7"/>
+        <TextBlock Text="Scanner, filters, analysis, exports" Opacity="0.7"/>
       </StackPanel>
     </Border>
 
     <!-- Body -->
     <ScrollViewer Grid.Row="1">
       <StackPanel Margin="12" Spacing="12">
-        <!-- Paths (GroupBox を使わず簡易配置) -->
-        <TextBlock Text="パス" FontWeight="Bold"/>
+        <!-- Paths -->
+        <TextBlock Text="Paths" FontWeight="Bold"/>
         <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto">
-          <TextBlock Text="入力ルート:" Margin="0,0,8,0" VerticalAlignment="Center"/>
+          <TextBlock Text="Input Root" Margin="0,0,8,0" VerticalAlignment="Center"/>
           <TextBox Grid.Column="1" Text="{Binding InputRoot}" MinWidth="600"/>
-          <Button Grid.Column="2" x:Name="BrowseInputButton" Content="参照..." Margin="8,0,0,0"/>
+          <Button Grid.Column="2" x:Name="BrowseInputButton" Content="Browse..." Margin="8,0,0,0"/>
 
-          <TextBlock Grid.Row="1" Text="出力ルート:" Margin="0,8,8,0" VerticalAlignment="Center"/>
+          <TextBlock Grid.Row="1" Text="Output Root" Margin="0,8,8,0" VerticalAlignment="Center"/>
           <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding OutputRoot}" MinWidth="600"/>
-          <Button Grid.Row="1" Grid.Column="2" x:Name="OpenOutputButton" Content="開く" Margin="8,8,0,0"/>
+          <Button Grid.Row="1" Grid.Column="2" x:Name="OpenOutputButton" Content="Open" Margin="8,8,0,0"/>
 
-          <TextBlock Grid.Row="2" Text="コードブック:" Margin="0,8,8,0" VerticalAlignment="Center"/>
+          <TextBlock Grid.Row="2" Text="Codebook Path:" Margin="0,8,8,0" VerticalAlignment="Center"/>
           <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding CodebookPath}" MinWidth="600"/>
-          <Button Grid.Row="2" Grid.Column="2" x:Name="BrowseCodebookButton" Content="参照..." Margin="8,8,0,0"/>
+          <Button Grid.Row="2" Grid.Column="2" x:Name="BrowseCodebookButton" Content="Browse..." Margin="8,8,0,0"/>
         </Grid>
 
-        <!-- Filters (簡易配置) -->
-        <TextBlock Text="フィルター" FontWeight="Bold"/>
+        <!-- Filters -->
+        <TextBlock Text="Filters" FontWeight="Bold"/>
         <Grid ColumnDefinitions="Auto,*,Auto,*,Auto,*" RowDefinitions="Auto,Auto">
           <TextBlock Text="IC:" Margin="0,0,8,0" VerticalAlignment="Center"/>
           <TextBox Grid.Column="1" Text="{Binding IC}"/>
           <TextBlock Grid.Column="2" Text="LotNo:" Margin="16,0,8,0" VerticalAlignment="Center"/>
           <TextBox Grid.Column="3" Text="{Binding LotNo}"/>
-          <TextBlock Grid.Column="4" Text="日付:" Margin="16,0,8,0" VerticalAlignment="Center"/>
+          <TextBlock Grid.Column="4" Text="Date:" Margin="16,0,8,0" VerticalAlignment="Center"/>
           <DatePicker Grid.Column="5" SelectedDate="{Binding Date}"/>
 
-          <TextBlock Grid.Row="1" Text="範囲指定:" Margin="0,8,8,0" VerticalAlignment="Center"/>
-          <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding UseDateRange}" Content="使用"/>
+          <TextBlock Grid.Row="1" Text="Date Range" Margin="0,8,8,0" VerticalAlignment="Center"/>
+          <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding UseDateRange}" Content="Use"/>
           <TextBlock Grid.Row="1" Grid.Column="2" Text="From:" Margin="16,8,8,0" VerticalAlignment="Center"/>
           <DatePicker Grid.Row="1" Grid.Column="3" SelectedDate="{Binding DateFrom}"/>
           <TextBlock Grid.Row="1" Grid.Column="4" Text="To:" Margin="16,8,8,0" VerticalAlignment="Center"/>
           <DatePicker Grid.Row="1" Grid.Column="5" SelectedDate="{Binding DateTo}"/>
         </Grid>
 
-        <!-- Parameters (簡易配置) -->
-        <TextBlock Text="解析パラメータ" FontWeight="Bold"/>
+        <!-- Parameters -->
+        <TextBlock Text="Parameters" FontWeight="Bold"/>
         <Grid ColumnDefinitions="Auto,*,Auto,*,Auto,*" RowDefinitions="Auto">
-          <TextBlock Text="クラスタ半径 r:" VerticalAlignment="Center"/>
+          <TextBlock Text="Cluster Radius:" VerticalAlignment="Center"/>
           <TextBox Grid.Column="1" Text="{Binding ClusterRadius}"/>
-          <TextBlock Grid.Column="2" Text="時間窓 t[sec]:" Margin="16,0,0,0" VerticalAlignment="Center"/>
+          <TextBlock Grid.Column="2" Text="Cluster Window [sec]:" Margin="16,0,0,0" VerticalAlignment="Center"/>
           <TextBox Grid.Column="3" Text="{Binding ClusterTimeWindowSec}"/>
-          <TextBlock Grid.Column="4" Text="アラーム Δt[sec]:" Margin="16,0,0,0" VerticalAlignment="Center"/>
+          <TextBlock Grid.Column="4" Text="Alarm Window [sec]:" Margin="16,0,0,0" VerticalAlignment="Center"/>
           <TextBox Grid.Column="5" Text="{Binding AlarmWindowSec}"/>
         </Grid>
         <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto" Margin="0,8,0,0">
-          <TextBlock Text="アラーム閾値:" VerticalAlignment="Center"/>
+          <TextBlock Text="Alarm Threshold:" VerticalAlignment="Center"/>
           <TextBox Grid.Column="1" Text="{Binding AlarmThreshold}"/>
         </Grid>
 
         <!-- Actions & Progress -->
         <StackPanel Orientation="Horizontal" Spacing="8">
-          <Button Content="実行" Command="{Binding RunCommand}" IsEnabled="{Binding IsNotRunning}"/>
-          <Button Content="停止" Command="{Binding CancelCommand}" IsEnabled="{Binding IsRunning}"/>
-          <Button Content="ログを開く" x:Name="OpenLogsButton"/>
-          <Button Content="設定保存" Command="{Binding SaveSettingsCommand}"/>
+          <Button Content="Run" Command="{Binding RunCommand}" IsEnabled="{Binding IsNotRunning}"/>
+          <Button Content="Cancel" Command="{Binding CancelCommand}" IsEnabled="{Binding IsRunning}"/>
+          <Button Content="Open Logs" x:Name="OpenLogsButton"/>
+          <Button Content="Save Settings" Command="{Binding SaveSettingsCommand}"/>
         </StackPanel>
 
         <ProgressBar IsIndeterminate="{Binding IsRunning}" Height="6"/>
         <TextBlock Text="{Binding StatusText}"/>
 
-        <!-- Results (簡易配置) -->
-        <TextBlock Text="結果" FontWeight="Bold"/>
+        <!-- Results -->
+        <TextBlock Text="Results" FontWeight="Bold"/>
         <ItemsControl ItemsSource="{Binding RecentOutputs}">
           <ItemsControl.ItemTemplate>
             <DataTemplate>
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <TextBlock Text="{Binding}" Width="700" TextTrimming="CharacterEllipsis"/>
-                <Button Content="開く"
+                <Button Content="Open"
                         Command="{Binding DataContext.OpenPathCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                         CommandParameter="{Binding .}"/>
               </StackPanel>
@@ -102,3 +102,4 @@
     </Border>
   </Grid>
 </Window>
+

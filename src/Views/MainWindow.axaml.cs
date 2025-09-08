@@ -4,6 +4,7 @@ using System.IO;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using DekibaeCsvAnalyzer.ViewModels;
 
@@ -42,18 +43,34 @@ public partial class MainWindow : Window
 
         if (browseInput != null) browseInput.Click += async (_, __) =>
         {
-            var dlg = new OpenFolderDialog();
-            var path = await dlg.ShowAsync(this);
-            if (!string.IsNullOrWhiteSpace(path) && DataContext is MainWindowViewModel vm)
-                vm.InputRoot = path;
+            try
+            {
+                var result = await this.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+                {
+                    AllowMultiple = false
+                });
+                var folder = (result != null && result.Count > 0) ? result[0] : null;
+                if (folder != null && DataContext is MainWindowViewModel vm)
+                    vm.InputRoot = folder.Path?.LocalPath ?? folder.TryGetLocalPath() ?? vm.InputRoot;
+            }
+            catch { }
         };
 
         if (browseCodebook != null) browseCodebook.Click += async (_, __) =>
         {
-            var dlg = new OpenFileDialog { AllowMultiple = false, Filters = { new FileDialogFilter { Name = "CSV", Extensions = { "csv" } } } };
-            var paths = await dlg.ShowAsync(this);
-            if (paths != null && paths.Length > 0 && DataContext is MainWindowViewModel vm)
-                vm.CodebookPath = paths[0];
+            try
+            {
+                var csvType = new FilePickerFileType("CSV") { Patterns = new[] { "*.csv" } };
+                var files = await this.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+                {
+                    AllowMultiple = false,
+                    FileTypeFilter = new[] { csvType }
+                });
+                var file = (files != null && files.Count > 0) ? files[0] : null;
+                if (file != null && DataContext is MainWindowViewModel vm)
+                    vm.CodebookPath = file.Path?.LocalPath ?? file.TryGetLocalPath() ?? vm.CodebookPath;
+            }
+            catch { }
         };
 
         if (openOutput != null) openOutput.Click += (_, __) =>

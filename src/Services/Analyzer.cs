@@ -51,8 +51,17 @@ namespace DekibaeCsvAnalyzer.Services
 
             string icLabel = string.IsNullOrWhiteSpace(conditions.IC) ? "IC" : conditions.IC;
             string lotLabel = string.IsNullOrWhiteSpace(conditions.LotNo) ? "ALL" : conditions.LotNo;
-            string dateLabel = (conditions.From ?? DateTime.MinValue).ToString("yyyyMMdd", CultureInfo.InvariantCulture)
-                              + "-" + (conditions.To ?? conditions.From ?? DateTime.MinValue).ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+            string dateLabel;
+            if (conditions.From.HasValue || conditions.To.HasValue)
+            {
+                var fromLabel = (conditions.From ?? conditions.To ?? DateTime.MinValue).ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+                var toLabel = (conditions.To ?? conditions.From ?? DateTime.MinValue).ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+                dateLabel = fromLabel + "-" + toLabel;
+            }
+            else
+            {
+                dateLabel = "ALL";
+            }
             var tsStamp = DateTime.Now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture);
 
             string? aggregatePath = null;
